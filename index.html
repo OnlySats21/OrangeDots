@@ -578,10 +578,10 @@ var M = {
 // Week of Apr 7-13, 2026:
 // Mon Apr 7: gate OPEN all day. BTC avg ~$83k. Full day estimate.
 var WEEK_HIST = [
-  820,   // MON Apr 7  -- confirmed locked
-  1773,  // TUE Apr 8  -- session complete, locked at ~$70.5k BTC
-  null,  // WED Apr 9  -- future
-  null,  // THU Apr 10 -- future
+  820,   // MON Apr 7  -- est. locked (~$80k BTC, gate open)
+  1773,  // TUE Apr 8  -- est. locked (~$70.5k BTC, gate open)
+  2528,  // WED Apr 9  -- est. locked ($333M STRC vol, ~$70.5k BTC -> vol-based)
+  null,  // THU Apr 10 -- today (live)
   null,  // FRI Apr 11 -- future
   null,  // SAT Apr 12 -- weekend (MSTR only)
   null   // SUN Apr 13 -- weekend (MSTR only)
@@ -1118,12 +1118,14 @@ function fetchSTRC(cb){
 
   function deliver(p, vol, src){
     if(!p||isNaN(p)||p<=0||p>9999)return;
-    // Dollar volume: shares * price (since STRC trades at ~$100)
     var dollarVol = vol>0 ? vol*p : 0;
-    settled = true;
     _strcCache=p; _strcSrc=src;
     cb(p, true, dollarVol);
-    setTimeout(function(){ fetchSTRC(cb); }, 60000);
+    if(!settled){
+      settled = true;
+      // Single clean reschedule - clears any pending fallback
+      setTimeout(function(){ fetchSTRC(cb); }, 60000);
+    }
   }
 
   // Seed immediately - never shows fetching
@@ -1957,7 +1959,7 @@ renderHKTable();
 applyBTC(BTC_P, null, 'seed');
 renderAll();
 // Fire STRC fetch immediately on load (separate from refresh cycle)
-fetchSTRC(function(p,live){applySTRC(p,live);renderAll();});
+fetchSTRC(function(p,live,vol){applySTRC(p,live,vol);renderAll();});
 setTimeout(function(){initDotHover();var sp=Math.round(HOLDINGS/MSTR_SHARES*1e8);drawMNAVChart(sp);},300);
 initShare();
 if(window.innerWidth >= 768){ requestAnimationFrame(drawPill); }
@@ -1981,7 +1983,7 @@ renderHKTable();
 applyBTC(BTC_P, null, 'seed');
 renderAll();
 // Fire STRC fetch immediately on load (separate from refresh cycle)
-fetchSTRC(function(p,live){applySTRC(p,live);renderAll();});
+fetchSTRC(function(p,live,vol){applySTRC(p,live,vol);renderAll();});
 setTimeout(function(){initDotHover();var sp=Math.round(HOLDINGS/MSTR_SHARES*1e8);drawMNAVChart(sp);},300);
 initShare();
 if(window.innerWidth >= 768){ requestAnimationFrame(drawPill); }
