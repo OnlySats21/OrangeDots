@@ -578,8 +578,8 @@ var M = {
 // Week of Apr 7-13, 2026:
 // Mon Apr 7: gate OPEN all day. BTC avg ~$83k. Full day estimate.
 var WEEK_HIST = [
-  820,   // MON Apr 7  -- gate OPEN, BTC ~$83k: 65.98M/83k = 795, using 820 (BTC was ~$80k earlier)
-  null,  // TUE Apr 8  -- today (live)
+  820,   // MON Apr 7  -- confirmed locked
+  1773,  // TUE Apr 8  -- session complete, locked at ~$70.5k BTC
   null,  // WED Apr 9  -- future
   null,  // THU Apr 10 -- future
   null,  // FRI Apr 11 -- future
@@ -640,7 +640,8 @@ setInterval(function(){
   if(e)e.textContent=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'America/New_York'});
 },1000);
 setInterval(function(){
-  cdSec=Math.max(0,cdSec-1);var e=el('cdt');if(e)e.textContent=cdSec;
+  cdSec=Math.max(0,cdSec-1);
+  renderGateBanner();var e=el('cdt');if(e)e.textContent=cdSec;
 },1000);
 
 // ============================================================
@@ -666,7 +667,8 @@ function getSession(){
   var min  = getETMinutes();
   var dow  = getETDow();
   var wkday= (dow!=='Sat'&&dow!=='Sun');
-  var ao   = STRC_P>=99.5;
+  var inSession = wkday && min>=240 && min<1200; // 4am-8pm ET weekdays only
+  var ao   = STRC_P>=99.5 && inSession;
   var p    = BTC_P>0?BTC_P:76000;
 
   var S_OPEN=240, M_OPEN=570, M_CLOSE=960, S_CLOSE=1200;
@@ -737,9 +739,13 @@ setInterval(checkReset,15000);
 // RENDER WEEK BAR
 // ============================================================
 function renderWeekBar(){
-  var now=new Date(), dow=now.getDay();
-  DAY_IDX=dow===0?6:dow-1;
-  var mon=new Date(now);mon.setDate(now.getDate()-DAY_IDX);mon.setHours(0,0,0,0);
+  var etDow=getETDow();
+  var dowMap={Mon:0,Tue:1,Wed:2,Thu:3,Fri:4,Sat:5,Sun:6};
+  DAY_IDX=dowMap[etDow]!==undefined?dowMap[etDow]:0;
+  var now=new Date();
+  // Use ET-aware date for week range
+  var etNow=new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'}));
+  var mon=new Date(etNow);mon.setDate(etNow.getDate()-DAY_IDX);mon.setHours(0,0,0,0);
   var sun=new Date(mon);sun.setDate(mon.getDate()+6);
   var f=function(x){return x.toLocaleDateString('en-US',{month:'short',day:'numeric'});};
   set('wkRange',f(mon)+' - '+f(sun));
@@ -800,7 +806,7 @@ function renderWeekly(sess){
   var fullDay=sess.fullDay||0;
   var _p=BTC_P>0?BTC_P:76000;
   var DAYS=['MON','TUE','WED','THU','FRI','SAT','SUN'], di=DAY_IDX;
-  var wknd=Math.round(M.mstrDeploy*1e6/_p);
+  var wknd=Math.round(M.baseDeploy*M.mstrPct*1e6/_p);
   var days=[], tot=0;
   for(var i=0;i<7;i++){
     var isWE=(i===5||i===6);
@@ -895,7 +901,7 @@ function renderWeekly(sess){
 function renderPill(sess){
   var soFar=sess.soFar;
   var dollarsIn=(sess.sNet*sess.strcFrac+sess.mNet*sess.mstrFrac)*1e6;
-  var ao=sess.ao;
+  var ao=sess.ao; // already time-aware from getSession
   set('pmDollarsIn',money(dollarsIn));
   set('pmBtcOut',num(soFar));
   set('pmProg',Math.round(sess.totalFrac*100)+'%');
@@ -1798,13 +1804,18 @@ function renderGateBanner(){
   var txt=el('gateBannerTxt');
   if(!banner||!txt)return;
   if(STRC_P<=0){banner.style.display='none';return;}
-  var ao=STRC_P>=99.5;
+  var min=getETMinutes(), dow=getETDow();
+  var wkday=(dow!=='Sat'&&dow!=='Sun');
+  var inSession=wkday&&min>=240&&min<1200; // 4am-8pm ET weekdays
+  var ao=STRC_P>=99.5 && inSession;
   banner.style.display='flex';
   if(ao){
     banner.className='gate-banner open';
+    document.body.classList.add('gate-open');
     txt.textContent='ATM GATE OPEN  --  STRC at $'+STRC_P.toFixed(2)+' (above $99.50 par)  --  Strategy is actively accumulating BTC';
   } else {
     banner.className='gate-banner closed';
+    document.body.classList.remove('gate-open');
     txt.textContent='ATM GATE CLOSED  --  STRC at $'+STRC_P.toFixed(2)+' (below $99.50 par)  --  Only MSTR common ATM running';
   }
 }
