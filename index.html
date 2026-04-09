@@ -663,25 +663,38 @@ function getETDow(){
   return new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',weekday:'short'}).format(new Date());
 }
 
+function isGateOpen(){
+  var min  = getETMinutes();
+  var dow  = getETDow();
+  var wkday= (dow!=='Sat'&&dow!=='Sun');
+  // STRC ATM: 4am-8pm ET weekdays
+  // MSTR ATM: 9:30am-4pm ET weekdays (but for gate display we use STRC hours)
+  var inSession = wkday && min>=240 && min<1200;
+  return STRC_P>=99.5 && inSession;
+}
+
+
 function getSession(){
   var min  = getETMinutes();
   var dow  = getETDow();
   var wkday= (dow!=='Sat'&&dow!=='Sun');
   var inSession = wkday && min>=240 && min<1200; // 4am-8pm ET weekdays only
-  var ao   = STRC_P>=99.5 && inSession;
+  var ao   = STRC_P>=99.5 && inSession;   // gate open RIGHT NOW
+  var gateWasOpen = STRC_P>=99.5 && wkday; // gate was open at some point today
   var p    = BTC_P>0?BTC_P:76000;
 
   var S_OPEN=240, M_OPEN=570, M_CLOSE=960, S_CLOSE=1200;
   var S_WIN=S_CLOSE-S_OPEN; // 960 min
 
-  // STRC premium scaling: higher STRC above par = more ATM capacity
-  // Scale linearly: at par(100) = 1.0x, at 110 = 1.1x, capped at 1.5x
+  // STRC premium scaling
   var strcScale = 1.0;
-  if(ao && STRC_P > 100){
+  if(STRC_P>=99.5 && STRC_P > 100){
     strcScale = Math.min(1.5, 1.0 + (STRC_P - 100) / 100);
   }
   var totalDeploy = M.baseDeploy * strcScale;
-  var sNet = ao ? totalDeploy * M.strcPct : 0;
+  // sNet: STRC contribution - use full rate if gate was/is open today
+  var sNet = gateWasOpen ? totalDeploy * M.strcPct : 0;
+  // mNet: MSTR always runs on weekdays during market hours
   var mNet = totalDeploy * M.mstrPct;
   var fullDay = Math.round((sNet+mNet)*1e6/p);
 
@@ -711,7 +724,19 @@ function getSession(){
     }
   }
 
-  var soFar = Math.round((sNet*strcFrac+mNet*mstrFrac)*1e6/p);
+  // After session ends (>8pm ET), show completed full-day estimate
+  // Session ran all day - soFar = full day projection
+  var soFar;
+  if(!wkday){
+    // Weekend - MSTR only, full day
+    soFar = Math.round(mNet*1e6/p);
+  } else if(min >= S_CLOSE){
+    // After 8pm - session complete, show full day
+    soFar = Math.round((sNet+mNet)*1e6/p);
+  } else {
+    // During session - live progress
+    soFar = Math.round((sNet*strcFrac+mNet*mstrFrac)*1e6/p);
+  }
   var totalFrac = wkday&&min>=S_OPEN ? Math.min((min-S_OPEN)/S_WIN,1) : 0;
 
   return{min:min,dow:dow,wkday:wkday,ao:ao,sNet:sNet,mNet:mNet,
@@ -1000,7 +1025,7 @@ function applyBTC(p,ch,src){
 
 function applySTRC(p,live){
   if(!p||p<=0)return;
-  STRC_P=p; var ao=p>=99.5;
+  STRC_P=p; var ao=isGateOpen();
   var sv=el('strcVal');if(sv){sv.textContent='$'+p.toFixed(2);sv.style.color=ao?'var(--gn)':'var(--rd)';}
   var ss=el('strcSub');if(ss){ss.textContent=(ao?'above par':'below par')+(live?' - '+_strcSrc:'');ss.style.color=ao?'var(--gn)':'var(--rd)';}
   var sb=el('strcBadge');if(sb){sb.textContent=ao?'ATM GATE OPEN':'ATM GATE CLOSED';sb.className='atmbadge '+(ao?'on':'off');}
@@ -1275,7 +1300,7 @@ function drawPill(){
   var H=320;if(cv.height!==H)cv.height=H;
   var ctx=cv.getContext('2d');
   var t=Date.now()*.001;
-  var ao2=STRC_P>=99.5;
+  var ao2=isGateOpen();
   var sess=getSession();
   var running=ao2?(sess.strcFrac>0||sess.mstrFrac>0):false;
   ctx.clearRect(0,0,W,H);
@@ -1806,7 +1831,8 @@ function renderGateBanner(){
   if(STRC_P<=0){banner.style.display='none';return;}
   var min=getETMinutes(), dow=getETDow();
   var wkday=(dow!=='Sat'&&dow!=='Sun');
-  var inSession=wkday&&min>=240&&min<1200; // 4am-8pm ET weekdays
+  var S_CLOSE=1200,S_OPEN=240;
+  var inSession=wkday&&min>=S_OPEN&&min<S_CLOSE; // 4am-8pm ET weekdays
   var ao=STRC_P>=99.5 && inSession;
   banner.style.display='flex';
   if(ao){
@@ -1816,7 +1842,10 @@ function renderGateBanner(){
   } else {
     banner.className='gate-banner closed';
     document.body.classList.remove('gate-open');
-    txt.textContent='ATM GATE CLOSED  --  STRC at $'+STRC_P.toFixed(2)+' (below $99.50 par)  --  Only MSTR common ATM running';
+    var afterHours=min>=1200&&wkday;
+    txt.textContent=afterHours?
+      'SESSION COMPLETE  --  Full day estimate shown  --  Next session 4:00 AM ET':
+      (STRC_P<99.5?'ATM GATE CLOSED  --  STRC at $'+STRC_P.toFixed(2)+' (below $99.50 par)':'ATM GATE CLOSED  --  Market closed')+' (below $99.50 par)  --  Only MSTR common ATM running';
   }
 }
 
@@ -1824,7 +1853,7 @@ function renderGateBanner(){
 // MOBILE NAV
 // ============================================================
 function renderMobileNav(sess){
-  var ao=sess?sess.ao:STRC_P>=99.5;
+  var ao=sess?sess.ao:isGateOpen();
   var soFar=sess?sess.soFar:0;
   var mg=el('mobGate');
   if(mg){mg.textContent=ao?'OPEN':'CLOSED';mg.className='mob-val '+(ao?'gn':'rd');}
@@ -1843,7 +1872,7 @@ function initShare(){
   var btn=el('shareBtn');
   if(!btn)return;
   btn.addEventListener('click',function(){
-    var ao=STRC_P>=99.5;
+    var ao=isGateOpen();
     var sess=getSession();
     var lines=[
       'Strategy BTC Accumulation Snapshot',
@@ -1879,7 +1908,7 @@ function showToast(){
 // LIVE TAB TITLE
 // ============================================================
 function updateTabTitle(sess){
-  var ao=STRC_P>=99.5;
+  var ao=isGateOpen();
   document.title=num(sess?sess.soFar:0)+' BTC today | Gate '+(ao?'OPEN':'CLOSED')+' | Orange Dots';
 }
 
