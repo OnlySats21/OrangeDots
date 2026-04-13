@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/strc.js": {
+      "runtime": "edge"
+    }
+  }
+}
