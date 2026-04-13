@@ -316,7 +316,7 @@ footer{border-top:1px solid var(--line);padding:14px 18px;font-size:11px;color:v
 <div class="strip">
   <div class="cell"><div class="cbar b-og"></div><div class="lbl">STRC Price</div><div class="val" id="strcVal" style="color:var(--txt)">fetching...</div><div class="sub" id="strcSub">24/7 live</div><div class="atmbadge off" id="strcBadge">CHECKING...</div></div>
   <div class="cell"><div class="cbar b-gn"></div><div class="lbl">BTC / USD</div><div class="val" id="btcVal">fetching...</div><div class="sub" id="btcSub">live price</div></div>
-  <div class="cell"><div class="cbar b-dim"></div><div class="lbl">Total Holdings</div><div class="val" style="font-size:16px;padding-top:3px;color:var(--hi)">766,970 &#8383;</div><div class="sub">avg $75,644 &bull; $58.02B cost</div></div>
+  <div class="cell"><div class="cbar b-dim"></div><div class="lbl">Total Holdings</div><div class="val" style="font-size:16px;padding-top:3px;color:var(--hi)"><span id="holdingsStrip">780,897</span> &#8383;</div><div class="sub" id="holdingsCost">avg $75,577 &bull; $58.02B cost</div></div>
   <div class="cell"><div class="cbar b-dim"></div><div class="lbl">Refreshed</div><div class="val" style="font-size:13px;padding-top:4px;color:var(--txt)" id="updVal">--</div><div class="sub">next <span id="cdt">60</span>s &bull; <span id="src">--</span></div></div>
 </div>
 
@@ -339,7 +339,7 @@ footer{border-top:1px solid var(--line);padding:14px 18px;font-size:11px;color:v
         <div style="background:var(--s2);border:1px solid var(--line);border-radius:9px;padding:12px 14px">
           <div class="lbl">Bitcoin Reserve Value</div>
           <div style="font-size:22px;font-weight:700;font-family:var(--mono);color:var(--hi);letter-spacing:-.5px;margin-top:4px" id="ksReserve">$--</div>
-          <div style="font-size:9px;color:var(--txt2);font-family:var(--mono);margin-top:3px">766,970 &#8383; at live price</div>
+          <div style="font-size:9px;color:var(--txt2);font-family:var(--mono);margin-top:3px"><span id="holdingsReserve">780,897</span> &#8383; at live price</div>
         </div>
         <div style="background:var(--s2);border:1px solid var(--line);border-radius:9px;padding:12px 14px">
           <div class="lbl">Unrealized P&amp;L</div>
@@ -493,7 +493,7 @@ footer{border-top:1px solid var(--line);padding:14px 18px;font-size:11px;color:v
   <div class="ctop">
     <div>
       <div class="ctt">Bitcoin Black Hole &mdash; Road to 1,000,000 BTC</div>
-      <div class="cts">766,970 BTC absorbed &bull; 233,030 remaining &bull; gravity of accumulation is irreversible</div>
+      <div class="cts"><span id="bhSubtitle">780,897 BTC absorbed &bull; 219,103 remaining &bull; gravity of accumulation is irreversible</span></div>
     </div>
     <div style="display:flex;gap:8px;align-items:center">
       <button class="share-btn" id="shareBtn">Share Snapshot</button>
@@ -504,14 +504,14 @@ footer{border-top:1px solid var(--line);padding:14px 18px;font-size:11px;color:v
     <canvas id="bhCanvas" style="display:block;width:100%;background:#07090d"></canvas>
     <div id="bhTip" style="position:absolute;top:12px;right:16px;text-align:right;pointer-events:none">
       <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(120,150,180,0.6);font-family:var(--mono);margin-bottom:4px">BTC absorbed</div>
-      <div style="font-size:36px;font-weight:700;font-family:var(--mono);color:#f7931a;letter-spacing:-1px;line-height:1" id="bhCount">766,970</div>
-      <div style="font-size:10px;color:rgba(120,150,180,0.5);font-family:var(--mono);margin-top:3px" id="bhPct">76.7% of 1,000,000</div>
+      <div style="font-size:36px;font-weight:700;font-family:var(--mono);color:#f7931a;letter-spacing:-1px;line-height:1" id="bhCount">780,897</div>
+      <div style="font-size:10px;color:rgba(120,150,180,0.5);font-family:var(--mono);margin-top:3px" id="bhPct">78.1% of 1,000,000</div>
     </div>
   </div>
   <div style="display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line)">
     <div style="padding:12px 14px;border-right:1px solid var(--line)">
       <div style="font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--txt2);margin-bottom:4px">Absorbed</div>
-      <div style="font-size:16px;font-weight:700;font-family:var(--mono);color:#f7931a">766,970</div>
+      <div style="font-size:16px;font-weight:700;font-family:var(--mono);color:#f7931a">780,897</div>
       <div style="font-size:8.5px;color:var(--txt2);margin-top:2px">BTC confirmed</div>
     </div>
     <div style="padding:12px 14px;border-right:1px solid var(--line)">
@@ -526,7 +526,7 @@ footer{border-top:1px solid var(--line);padding:14px 18px;font-size:11px;color:v
     </div>
     <div style="padding:12px 14px">
       <div style="font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--txt2);margin-bottom:4px">Pull strength</div>
-      <div style="font-size:16px;font-weight:700;font-family:var(--mono);color:#f7931a">76.7%</div>
+      <div style="font-size:16px;font-weight:700;font-family:var(--mono);color:#f7931a">78.1%</div>
       <div style="font-size:8.5px;color:var(--txt2);margin-top:2px">event horizon</div>
     </div>
   </div>
@@ -954,6 +954,18 @@ function renderPill(sess){
 function renderKeyStats(){
   var p=BTC_P||76000;
   var reserve=HOLDINGS*p;
+  // Update all static holdings displays dynamically
+  var hFmt=num(HOLDINGS);
+  var hs=el('holdingsStrip');if(hs)hs.textContent=hFmt;
+  var hr=el('holdingsReserve');if(hr)hr.textContent=hFmt;
+  var bc=el('bhCount');if(bc)bc.textContent=hFmt;
+  var hc=el('holdingsCost');if(hc)hc.textContent='avg $'+num(AVG_COST)+' \u2022 $'+money(AVG_COST*HOLDINGS)+' cost';
+  var rem=1000000-HOLDINGS;
+  var bhs=el('bhSubtitle');if(bhs)bhs.textContent=hFmt+' BTC absorbed \u2022 '+num(rem)+' remaining \u2022 gravity of accumulation is irreversible';
+  // Update black hole stats
+  var bha=el('bhAbsorbed');if(bha)bha.textContent=hFmt;
+  var bhr=el('bhRemaining');if(bhr)bhr.textContent=num(rem);
+  var bhp=el('bhPct');if(bhp)bhp.textContent=(HOLDINGS/1000000*100).toFixed(1)+'% of 1,000,000';
   var pnl=(p-AVG_COST)*HOLDINGS;
   var pnlPct=(p-AVG_COST)/AVG_COST*100;
   set('ksReserve',money(reserve));
@@ -1800,7 +1812,7 @@ function initDotHover(){
 
 
 function renderDotStats(){
-  var remaining = 1000000 - 766970;
+  var remaining = 1000000 - HOLDINGS;
   var rate = DAY_BTC > 0 ? DAY_BTC : (BTC_P > 0 ? Math.round(65.98e6/BTC_P) : 795);
   if(!rate||rate<=0) rate = 795;
   var daysLeft = Math.ceil(remaining / rate);
@@ -1882,8 +1894,8 @@ function initShare(){
       'BTC Today: ~'+num(sess.soFar)+' BTC so far',
       'Full Day Est: ~'+num(sess.fullDay)+' BTC',
       'BTC Price: $'+num(Math.round(BTC_P||0)),
-      'Total Holdings: 766,970 BTC',
-      'Reserve Value: '+money((BTC_P||0)*766970),
+      'Total Holdings: '+num(HOLDINGS)+' BTC',
+      'Reserve Value: '+money((BTC_P||0)*HOLDINGS),
       'MSTR FG Index: '+FG_SCORE+' ('+fgLabel(FG_SCORE)+')',
       '',
       'Via @AAStack | Orange Dots'
