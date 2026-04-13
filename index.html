@@ -344,7 +344,7 @@ footer{border-top:1px solid var(--line);padding:14px 18px;font-size:11px;color:v
         <div style="background:var(--s2);border:1px solid var(--line);border-radius:9px;padding:12px 14px">
           <div class="lbl">Unrealized P&amp;L</div>
           <div style="font-size:22px;font-weight:700;font-family:var(--mono);letter-spacing:-.5px;margin-top:4px" id="ksPnl">$--</div>
-          <div style="font-size:9px;color:var(--txt2);font-family:var(--mono);margin-top:3px">vs avg cost $75,644</div>
+          <div style="font-size:9px;color:var(--txt2);font-family:var(--mono);margin-top:3px">vs avg cost $75,577</div>
         </div>
         <div style="background:var(--s2);border:1px solid var(--line);border-radius:9px;padding:12px 14px">
           <div class="lbl">Next 8-K Countdown</div>
@@ -353,20 +353,20 @@ footer{border-top:1px solid var(--line);padding:14px 18px;font-size:11px;color:v
         </div>
         <div style="background:var(--s2);border:1px solid var(--line);border-radius:9px;padding:12px 14px">
           <div class="lbl">Last Purchase</div>
-          <div style="font-size:22px;font-weight:700;font-family:var(--mono);color:var(--og);letter-spacing:-.5px;margin-top:4px">4,871 &#8383;</div>
-          <div style="font-size:9px;color:var(--txt2);font-family:var(--mono);margin-top:3px">Apr 1-5, 2026 @ $67,718</div>
+          <div style="font-size:22px;font-weight:700;font-family:var(--mono);color:var(--og);letter-spacing:-.5px;margin-top:4px"><span id="ksLastBtc">13,927</span> &#8383;</div>
+          <div style="font-size:9px;color:var(--txt2);font-family:var(--mono);margin-top:3px"><span id="ksLastDate">Apr 6-12, 2026 @ $71,902</span></div>
         </div>
       </div>
       <div style="background:var(--s2);border:1px solid var(--line);border-radius:9px;padding:10px 14px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:4px">
-          <span style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--txt2);font-weight:600">BTC Price vs Avg Cost $75,644</span>
-          <span style="font-size:10px;font-family:var(--mono)" id="ksPriceVsAvg">--</span>
+          <span style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--txt2);font-weight:600">BTC Price vs Avg Cost $75,577</span>
+          <span id="ksAvgCostTitle" style="font-size:10px;font-family:var(--mono)" id="ksPriceVsAvg">--</span>
         </div>
         <div style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;position:relative">
           <div id="ksPriceBar" style="height:100%;width:50%;border-radius:3px;background:linear-gradient(90deg,var(--gn),rgba(0,208,132,.6));transition:width .8s"></div>
         </div>
         <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--txt2);font-family:var(--mono);margin-top:3px">
-          <span>$0</span><span>Avg $75,644</span><span id="ksPriceBarMax">$150k</span>
+          <span>$0</span><span id="ksAvgCostLabel">Avg $75,577</span><span id="ksPriceBarMax">$150k</span>
         </div>
       </div>
     </div>
@@ -1930,6 +1930,84 @@ function updateTabTitle(sess){
 
 function drawMNAVChart(x){ /* removed */ }
 
+
+// ============================================================
+// AUTO-UPDATE HOLDINGS FROM SEC EDGAR + STRATEGY.COM
+// Runs on load and every 6 hours - updates when new 8-K drops
+// ============================================================
+function fetchHoldings(){
+  // Source 1: SEC EDGAR - Strategy Inc CIK 0001050446
+  // Gets latest 8-K filing metadata
+  fetch('https://data.sec.gov/submissions/CIK0001050446.json', {
+    headers: {'User-Agent': 'OrangeDots/1.0 orangedots@proton.me'},
+    cache: 'no-store'
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    var filings = data.filings && data.filings.recent;
+    if(!filings) return;
+    var forms = filings.form;
+    var dates = filings.filingDate;
+    var accNums = filings.accessionNumber;
+    // Find latest 8-K
+    for(var i=0; i<forms.length; i++){
+      if(forms[i] === '8-K'){
+        var accNum = accNums[i].replace(/-/g,'');
+        var cik = '0001050446';
+        // Fetch the actual 8-K document index
+        fetch('https://data.sec.gov/Archives/edgar/data/1050446/'+accNum+'/'+'0001193125'+accNum.slice(10)+'-index.json', {
+          headers: {'User-Agent': 'OrangeDots/1.0 orangedots@proton.me'}
+        })
+        .then(function(r){ return r.json(); })
+        .then(function(idx){
+          // Find the main document
+          var docs = idx.directory && idx.directory.item;
+          if(!docs) return;
+          var mainDoc = docs.find(function(d){ return d.type === '8-K'; });
+          if(!mainDoc) return;
+          // Fetch the actual 8-K text and parse holdings
+          var docUrl = 'https://data.sec.gov/Archives/edgar/data/1050446/'+accNum+'/'+mainDoc.name;
+          fetch(docUrl, {headers: {'User-Agent': 'OrangeDots/1.0 orangedots@proton.me'}})
+          .then(function(r){ return r.text(); })
+          .then(function(txt){
+            // Parse: "held X,XXX,XXX bitcoin" or "holdings to X,XXX,XXX"
+            var holdMatch = txt.match(/(\d{3},\d{3})\s*bitcoin/i);
+            // Parse: "average.*price.*\$XX,XXX" 
+            var avgMatch  = txt.match(/average\s+(?:purchase\s+)?price\s+(?:of\s+)?\$?([\d,]+)/i);
+            if(holdMatch){
+              var newHoldings = parseInt(holdMatch[1].replace(/,/g,''));
+              if(newHoldings > HOLDINGS && newHoldings < 2000000){
+                HOLDINGS = newHoldings;
+                if(avgMatch) AVG_COST = parseInt(avgMatch[1].replace(/,/g,''));
+                renderKeyStats();
+                renderAll();
+                console.log('Holdings auto-updated from 8-K:', newHoldings);
+              }
+            }
+          }).catch(function(){});
+        }).catch(function(){});
+        break;
+      }
+    }
+  }).catch(function(){});
+
+  // Also try strategy.com dashboard API
+  fetch('https://api.allorigins.win/raw?url='+encodeURIComponent('https://www.strategy.com/api/dashboard'), {cache:'no-store'})
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if(d && d.btcHoldings && d.btcHoldings > HOLDINGS && d.btcHoldings < 2000000){
+      HOLDINGS = d.btcHoldings;
+      if(d.avgCost) AVG_COST = d.avgCost;
+      renderKeyStats();
+      renderAll();
+      console.log('Holdings auto-updated from strategy.com:', d.btcHoldings);
+    }
+  }).catch(function(){});
+
+  // Reschedule every 6 hours
+  setTimeout(fetchHoldings, 6 * 60 * 60 * 1000);
+}
+
 // ============================================================
 // MASTER RENDER + REFRESH
 // ============================================================
@@ -1975,6 +2053,7 @@ if(window.innerWidth >= 768){ requestAnimationFrame(drawPill); }
 requestAnimationFrame(drawFGGauge);
 requestAnimationFrame(drawBlackHole);
 refresh(); // fire immediately on load
+fetchHoldings(); // auto-update holdings from SEC EDGAR
 setTimeout(refreshFG,1500);
 setInterval(refresh,60000);
 setInterval(refreshFG,300000);
@@ -1998,6 +2077,7 @@ if(window.innerWidth >= 768){ requestAnimationFrame(drawPill); }
 requestAnimationFrame(drawFGGauge);
 requestAnimationFrame(drawBlackHole);
 refresh(); // fire immediately on load
+fetchHoldings(); // auto-update holdings from SEC EDGAR
 window.addEventListener('resize',function(){BH_INIT=false;drawBlackHole();});
 window.addEventListener('orientationchange',function(){
   setTimeout(function(){BH_INIT=false;drawBlackHole();},300);
