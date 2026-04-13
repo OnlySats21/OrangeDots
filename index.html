@@ -557,14 +557,15 @@ var _strcCache = 0, _strcSrc = 'init';
 // STRC raised $227.3M / 5 days = $45.46M net/day
 // MSTR raised $144.0M / 5 days = $28.80M net/day
 var M = {
-  // Recency-weighted 8-K average (all confirmed weeks, recent weighted higher)
-  // Apr 1-5(x0.35) + Mar17(x0.25) + Mar10(x0.18) + Mar3(x0.12) + Feb24(x0.06) + older(x0.04)
-  // = $125.06M/day weighted avg net deployed into BTC
-  // STRC portion (61.2% of historic gross): $76.5M/day
-  // MSTR portion (38.8% of historic gross): $48.5M/day
-  baseDeploy: 125.06,  // $M/day weighted avg - all 8-K weeks
-  strcPct:    0.612,   // STRC share of total deployment
-  mstrPct:    0.388,   // MSTR share of total deployment
+  // Recency-weighted avg of confirmed 8-K weeks (Apr 6-12 = 0.40 weight)
+  // Apr 6-12: $143M/day STRC only (100%/0%)  x0.40
+  // Apr 1-5:  $66M/day  STRC+MSTR            x0.25
+  // Mar 17-23: $225M/day                     x0.18
+  // Mar 10-16: $146M/day                     x0.12
+  // Mar 3-9:  $87.5M/day                     x0.05
+  baseDeploy: 136.10,  // $M/day weighted avg
+  strcPct:    0.844,   // STRC share (weighted)
+  mstrPct:    0.156,   // MSTR share (weighted)
   mine:       450      // BTC mined/day post-halving
 };
 // Computed splits (recalculated if needed)
@@ -578,19 +579,20 @@ var M = {
 // Week of Apr 7-13, 2026:
 // Mon Apr 7: gate OPEN all day. BTC avg ~$83k. Full day estimate.
 var WEEK_HIST = [
-  820,   // MON Apr 7  -- est. locked (~$80k BTC, gate open)
-  1773,  // TUE Apr 8  -- est. locked (~$70.5k BTC, gate open)
-  2528,  // WED Apr 9  -- est. locked ($333M STRC vol, ~$70.5k BTC -> vol-based)
-  null,  // THU Apr 10 -- today (live)
-  null,  // FRI Apr 11 -- future
-  null,  // SAT Apr 12 -- weekend (MSTR only)
-  null   // SUN Apr 13 -- weekend (MSTR only)
-];
+  null,  // MON Apr 13 -- today (live)
+  null,  // TUE Apr 14 -- future
+  null,  // WED Apr 15 -- future
+  null,  // THU Apr 16 -- future
+  null,  // FRI Apr 17 -- future
+  null,  // SAT Apr 18 -- weekend
+  null   // SUN Apr 19 -- weekend
+]
+// Previous week Apr 6-12 CONFIRMED: 13,927 BTC total, $71,902 avg, STRC only ($1B)
 // Note: WEEK_HIST[0] (Monday) = 820 BTC
 // This is our best estimate for Mon Apr 7 when gate was open at ~$80k BTC
 // Update every Monday once 8-K confirms actual purchases
 
-var HOLDINGS = 766970, AVG_COST = 75644, MSTR_SHARES = 346800000; // Q1 2026 approx after ATM issuances
+var HOLDINGS = 780897, AVG_COST = 75577, MSTR_SHARES = 346800000; // Q1 2026 approx after ATM issuances
 
 // Fear and Greed
 var FG_SCORE = 50, FG_NEEDLE = Math.PI;
@@ -664,101 +666,81 @@ function getETDow(){
 }
 
 function isGateOpen(){
-  var min  = getETMinutes();
-  var dow  = getETDow();
-  var wkday= (dow!=='Sat'&&dow!=='Sun');
-  // STRC ATM: 4am-8pm ET weekdays
-  // MSTR ATM: 9:30am-4pm ET weekdays (but for gate display we use STRC hours)
-  var inSession = wkday && min>=240 && min<1200;
-  return STRC_P>=99.5 && inSession;
+  // Gate open = STRC above $99.50 par
+  // STRC runs 24/7 - no time restriction
+  // Gate status is for DISPLAY only - estimates run regardless
+  return STRC_P >= 99.5;
 }
 
 
 function getSession(){
-  var min  = getETMinutes();
-  var dow  = getETDow();
-  var wkday= (dow!=='Sat'&&dow!=='Sun');
-  var inSession = wkday && min>=240 && min<1200; // 4am-8pm ET weekdays only
-  var ao   = STRC_P>=99.5 && inSession;   // gate open RIGHT NOW
-  var gateWasOpen = STRC_P>=99.5 && wkday; // gate was open at some point today
-  var p    = BTC_P>0?BTC_P:76000;
+  var min = getETMinutes();
+  var dow = getETDow();
+  var p   = BTC_P > 0 ? BTC_P : 76000;
 
-  var S_OPEN=240, M_OPEN=570, M_CLOSE=960, S_CLOSE=1200;
-  var S_WIN=S_CLOSE-S_OPEN; // 960 min
+  // STRC runs 24/7 - no time gate for estimation
+  // MSTR runs weekdays 9:30am-4pm ET only
+  var wkday    = (dow !== 'Sat' && dow !== 'Sun');
+  var mstrOpen = wkday && min >= 570 && min < 960; // 9:30am-4pm ET
 
-  // STRC Volume-based estimate (most accurate method)
-  // Formula from STRC.live / CoinDesk: (volume * 40% * 97.5%) / BTC_price = BTC bought
-  // 40% of volume = new ATM issuance, 60% = secondary market trading
-  // 97.5% = after 2.5% broker commission
+  // Session label for display
+  var S_OPEN=0, S_CLOSE=1440; // STRC: full 24h
+  var M_OPEN=570, M_CLOSE=960; // MSTR: market hours only
+
+  // Gate open/closed only affects DISPLAY banner - not the BTC estimate
+  // STRC ATM issues regardless of price (price affects dividend rate, not issuance)
+  var ao = STRC_P >= 99.5; // true = above par, gate open for display
+
+  // BTC estimate methodology:
+  // PRIMARY: use live STRC volume (most accurate)
+  // volume * 40% = new ATM issuance, * 97.5% = after 2.5% commission
   var sNet, mNet;
-  if(gateWasOpen && STRC_VOL > 1000000){
-    // Use live volume method - highly accurate (verified ~99% on Mar 10)
+
+  if(STRC_VOL > 500000){
+    // Volume-based (confirmed ~99% accurate vs 8-K)
     var strcDollars = STRC_VOL * 0.40 * 0.975;
     sNet = strcDollars / 1e6; // $M
-    // MSTR: use fixed weighted avg (no live volume signal yet)
+    // MSTR: only include if MSTR was actually active this week
+    // Proxy: if STRC_VOL is very high relative to avg, MSTR likely zero
+    mNet = STRC_VOL > 5000000 ? 0 : M.baseDeploy * M.mstrPct;
+  } else {
+    // Fallback: use weighted 8-K average
+    sNet = M.baseDeploy * M.strcPct;
     mNet = M.baseDeploy * M.mstrPct;
-  } else {
-    // Fallback to weighted 8-K average when no volume data
-    var strcScale = 1.0;
-    if(STRC_P>=99.5 && STRC_P > 100){
-      strcScale = Math.min(1.5, 1.0 + (STRC_P - 100) / 100);
-    }
-    var totalDeploy = M.baseDeploy * strcScale;
-    sNet = gateWasOpen ? totalDeploy * M.strcPct : 0;
-    mNet = totalDeploy * M.mstrPct;
-  }
-  var fullDay = Math.round((sNet+mNet)*1e6/p);
-
-  var preBTC = Math.round(sNet*((M_OPEN-S_OPEN)/S_WIN)*1e6/p);
-  var regBTC = Math.round((sNet*((M_CLOSE-M_OPEN)/S_WIN)+mNet)*1e6/p);
-  var ahBTC  = Math.round(sNet*((S_CLOSE-M_CLOSE)/S_WIN)*1e6/p);
-
-  var strcFrac=0, mstrFrac=0, type='closed', label='Markets closed';
-
-  if(wkday){
-    if(min>=S_OPEN&&min<M_OPEN){
-      strcFrac=(min-S_OPEN)/S_WIN;
-      type='pre'; label='Pre-market - STRC only';
-    } else if(min>=M_OPEN&&min<=M_CLOSE){
-      strcFrac=(min-S_OPEN)/S_WIN;
-      mstrFrac=(min-M_OPEN)/(M_CLOSE-M_OPEN);
-      type='regular'; label='Regular session - STRC + MSTR';
-    } else if(min>M_CLOSE&&min<=S_CLOSE){
-      strcFrac=(min-S_OPEN)/S_WIN;
-      mstrFrac=1.0;
-      type='ah'; label='After hours - STRC extended';
-    } else if(min>S_CLOSE){
-      strcFrac=1.0;mstrFrac=1.0;
-      type='done'; label='Session complete';
-    } else {
-      type='preopen'; label='Pre-open - opens 4:00 AM EST';
-    }
   }
 
-  // After session ends (>8pm ET), show completed full-day estimate
-  // Session ran all day - soFar = full day projection
-  var soFar;
-  if(!wkday){
-    // Weekend - MSTR only, full day
-    soFar = Math.round(mNet*1e6/p);
-  } else if(min >= S_CLOSE){
-    // After 8pm - session complete, show full day
-    soFar = Math.round((sNet+mNet)*1e6/p);
-  } else {
-    // During session - live progress
-    soFar = Math.round((sNet*strcFrac+mNet*mstrFrac)*1e6/p);
-  }
-  var totalFrac = wkday&&min>=S_OPEN ? Math.min((min-S_OPEN)/S_WIN,1) : 0;
+  var fullDay = Math.round((sNet + mNet) * 1e6 / p);
 
-  return{min:min,dow:dow,wkday:wkday,ao:ao,gateWasOpen:gateWasOpen,sNet:sNet,mNet:mNet,
-    strcFrac:strcFrac,mstrFrac:mstrFrac,
-    soFar:soFar,fullDay:fullDay,preBTC:preBTC,regBTC:regBTC,ahBTC:ahBTC,
-    sNet:sNet,mNet:mNet,label:label,type:type,totalFrac:totalFrac};
+  // Time fractions for intraday progress
+  // STRC: proportional to time elapsed in current day (0-1440 min)
+  var strcFrac  = Math.min(min / 1440, 1);
+  // MSTR: only during market hours
+  var mstrFrac  = !wkday ? 0 :
+                  min < M_OPEN  ? 0 :
+                  min >= M_CLOSE ? 1 :
+                  (min - M_OPEN) / (M_CLOSE - M_OPEN);
+
+  var soFar = Math.round((sNet * strcFrac + mNet * mstrFrac) * 1e6 / p);
+  var totalFrac = (strcFrac * M.strcPct + mstrFrac * M.mstrPct);
+
+  // Session label
+  var type='', label='';
+  if(!wkday){ type='weekend'; label='Weekend - STRC active 24/7'; }
+  else if(min < M_OPEN){ type='premarket'; label='Pre-market - STRC active, MSTR opens 9:30 AM ET'; }
+  else if(min < M_CLOSE){ type='open'; label='Market open - STRC + MSTR active'; }
+  else { type='afterhours'; label='After hours - STRC extended'; }
+
+  return {
+    min:min, dow:dow, wkday:wkday, ao:ao,
+    gateWasOpen: STRC_P >= 99.5,
+    sNet:sNet, mNet:mNet,
+    soFar:soFar, fullDay:fullDay,
+    strcFrac:strcFrac, mstrFrac:mstrFrac, totalFrac:totalFrac,
+    type:type, label:label
+  };
 }
 
-// ============================================================
-// MIDNIGHT RESET
-// ============================================================
+
 function checkReset(){
   var d=new Date().toLocaleDateString('en-US',{timeZone:'America/New_York'});
   if(_lastDateET&&_lastDateET!==d){
@@ -1114,73 +1096,71 @@ function fetchBTC(cb){
 
 
 function fetchSTRC(cb){
-  var settled = false;
+  var _timer = null;
 
-  function deliver(p, vol, src){
-    if(!p||isNaN(p)||p<=0||p>9999)return;
+  function done(p, vol, src){
+    if(!p||isNaN(p)||p<=0||p>9999) return;
+    if(_timer){ clearTimeout(_timer); _timer=null; }
     var dollarVol = vol>0 ? vol*p : 0;
     _strcCache=p; _strcSrc=src;
     cb(p, true, dollarVol);
-    if(!settled){
-      settled = true;
-      // Single clean reschedule - clears any pending fallback
-      setTimeout(function(){ fetchSTRC(cb); }, 60000);
-    }
+    // Always reschedule exactly once, 60s from now
+    setTimeout(function(){ fetchSTRC(cb); }, 60000);
   }
 
-  // Seed immediately - never shows fetching
-  var seed = _strcCache>0 ? _strcCache : 100.00;
-  cb(seed, false, STRC_VOL);
+  // Show seed immediately so display never shows "fetching"
+  cb(_strcCache>0 ? _strcCache : 100.00, false, STRC_VOL);
 
-  // SOURCE 1: Vercel API (server-side, no CORS)
-  fetch('/api/strc?t='+Date.now(),{cache:'no-store'})
-    .then(function(r){return r.json();})
+  // SOURCE 1: Finnhub - CORS open, works on mobile Safari
+  fetch('https://finnhub.io/api/v1/quote?symbol=STRC&token=d7as1i9r01qtpbh9kg8g', {cache:'no-store'})
+    .then(function(r){ return r.json(); })
+    .then(function(d){ if(d&&d.c>0) done(d.c, d.v||0, 'Finnhub'); })
+    .catch(function(){});
+
+  // SOURCE 2: Stooq - CORS open, no key needed
+  fetch('https://stooq.com/q/l/?s=strc.us&f=sd2t2ohlcv&h&e=json', {cache:'no-store'})
+    .then(function(r){ return r.json(); })
     .then(function(d){
-      if(d.price&&d.price>0)deliver(d.price, d.volume||0, d.source||'API');
+      var sym=d.symbols&&d.symbols[0];
+      var p=sym&&parseFloat(sym.close);
+      var v=sym&&parseFloat(sym.volume)||0;
+      if(p>0) done(p, v, 'Stooq');
     }).catch(function(){});
 
-  // SOURCE 2: Finnhub - has volume in 'v' field
-  fetch('https://finnhub.io/api/v1/quote?symbol=STRC&token=d7as1i9r01qtpbh9kg8g',{cache:'no-store'})
-    .then(function(r){return r.json();})
-    .then(function(d){
-      if(d&&d.c>0)deliver(d.c, d.v||0, 'Finnhub');
-    }).catch(function(){});
-
-  // SOURCE 3: Yahoo v7 direct - has regularMarketVolume
-  fetch('https://query2.finance.yahoo.com/v7/finance/quote?symbols=STRC&fields=regularMarketPrice,preMarketPrice,postMarketPrice,marketState,regularMarketVolume',{cache:'no-store'})
-    .then(function(r){return r.json();})
+  // SOURCE 3: Yahoo direct
+  fetch('https://query2.finance.yahoo.com/v7/finance/quote?symbols=STRC&fields=regularMarketPrice,regularMarketVolume,marketState,preMarketPrice,postMarketPrice', {cache:'no-store'})
+    .then(function(r){ return r.json(); })
     .then(function(d){
       var q=d.quoteResponse&&d.quoteResponse.result&&d.quoteResponse.result[0];
-      if(!q)return;
+      if(!q) return;
       var st=q.marketState||'REGULAR';
       var p=st==='PRE'&&q.preMarketPrice>0?q.preMarketPrice:
             st==='POST'&&q.postMarketPrice>0?q.postMarketPrice:
             q.regularMarketPrice||0;
-      if(p>0)deliver(p, q.regularMarketVolume||0, 'Yahoo/'+st);
+      if(p>0) done(p, q.regularMarketVolume||0, 'Yahoo/'+st);
     }).catch(function(){});
 
-  // SOURCE 4: allorigins proxy -> Yahoo v7
-  fetch('https://api.allorigins.win/raw?url='+encodeURIComponent('https://query2.finance.yahoo.com/v7/finance/quote?symbols=STRC&fields=regularMarketPrice,preMarketPrice,postMarketPrice,marketState,regularMarketVolume'),{cache:'no-store'})
-    .then(function(r){return r.text();})
+  // SOURCE 4: allorigins proxy -> Yahoo
+  fetch('https://api.allorigins.win/raw?url='+encodeURIComponent('https://query2.finance.yahoo.com/v7/finance/quote?symbols=STRC&fields=regularMarketPrice,regularMarketVolume,marketState'), {cache:'no-store'})
+    .then(function(r){ return r.text(); })
     .then(function(t){
       var d=JSON.parse(t);
       var q=d.quoteResponse&&d.quoteResponse.result&&d.quoteResponse.result[0];
-      if(!q)return;
-      var st=q.marketState||'REGULAR';
-      var p=st==='PRE'&&q.preMarketPrice>0?q.preMarketPrice:
-            st==='POST'&&q.postMarketPrice>0?q.postMarketPrice:
-            q.regularMarketPrice||0;
-      if(p>0)deliver(p, q.regularMarketVolume||0, 'YF-proxy');
+      if(q&&q.regularMarketPrice>0) done(q.regularMarketPrice, q.regularMarketVolume||0, 'YF-proxy');
     }).catch(function(){});
 
-  // Fallback after 8s
-  setTimeout(function(){
-    if(!settled){
-      settled=true;
-      if(_strcCache>0){cb(_strcCache,false,STRC_VOL);}
-      setTimeout(function(){fetchSTRC(cb);},30000);
-    }
-  },8000);
+  // SOURCE 5: Vercel serverless (same domain, no CORS issues)
+  fetch('/api/strc?t='+Date.now(), {cache:'no-store'})
+    .then(function(r){ return r.json(); })
+    .then(function(d){ if(d.price>0) done(d.price, d.volume||0, d.source||'API'); })
+    .catch(function(){});
+
+  // If nothing responds in 10s, reschedule in 60s anyway
+  _timer = setTimeout(function(){
+    _timer=null;
+    if(_strcCache>0) cb(_strcCache, false, STRC_VOL);
+    setTimeout(function(){ fetchSTRC(cb); }, 60000);
+  }, 10000);
 }
 
 
@@ -1473,7 +1453,7 @@ var bgCoins=[];
 // Update every Monday after filing
 // ============================================================
 var PURCHASE_HIST = [
-  {week:'Apr 7-11, 2026',  btc:0,      avg:0,      raised:0,       total:766970, note:'current week'},
+  {week:'Apr 6-12, 2026',  btc:13927,  avg:71902,  raised:1001.3,  total:780897, note:'8-K confirmed Apr 13'},
   {week:'Apr 1-5, 2026',   btc:4871,   avg:67718,  raised:371.3,   total:766970},
   {week:'Mar 24-30, 2026', btc:0,      avg:0,      raised:0,       total:762099, note:'no purchase'},
   {week:'Mar 17-23, 2026', btc:22048,  avg:71475,  raised:1576,    total:762099},
@@ -1982,8 +1962,7 @@ renderWeekBar();
 renderHKTable();
 applyBTC(BTC_P, null, 'seed');
 renderAll();
-// Fire STRC fetch immediately on load (separate from refresh cycle)
-fetchSTRC(function(p,live,vol){applySTRC(p,live,vol);renderAll();});
+
 setTimeout(function(){initDotHover();var sp=Math.round(HOLDINGS/MSTR_SHARES*1e8);drawMNAVChart(sp);},300);
 initShare();
 if(window.innerWidth >= 768){ requestAnimationFrame(drawPill); }
