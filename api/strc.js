@@ -1,11 +1,17 @@
 // Vercel serverless function - api/strc.js
-// Returns STRC price AND volume - runs server-side, no CORS issues
+// Returns STRC price, volume, and estimated ATM proceeds
+// Applies capture rate multiplier to account for off-exchange ATM activity
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=60');
 
   const KEY = 'd7as1i9r01qtpbh9kg8g';
+
+  // Capture rate: confirmed 81% this week (Apr 6-12 8-K)
+  // exchange volume * 1.0 / 0.81 = total ATM volume estimate
+  // Simplified: multiply exchange volume by 1.23 to get total ATM proceeds estimate
+  const CAPTURE_MULTIPLIER = 1.23;
 
   const sources = [
     // Yahoo Finance v7 - price + volume
@@ -22,15 +28,17 @@ export default async function handler(req, res) {
               : st==='POST' && q.postMarketPrice > 0 ? q.postMarketPrice
               : q.regularMarketPrice;
       if (!p || p <= 0) throw new Error('no price');
-      return { price: p, volume: q.regularMarketVolume || 0, source: 'Yahoo/'+st };
+      const vol = (q.regularMarketVolume || 0) * CAPTURE_MULTIPLIER;
+      return { price: p, volume: vol, source: 'Yahoo/' + st };
     },
 
-    // Finnhub - price + volume (v field = daily volume)
+    // Finnhub - price + volume
     async () => {
       const r = await fetch(`https://finnhub.io/api/v1/quote?symbol=STRC&token=${KEY}`);
       const d = await r.json();
       if (!d.c || d.c <= 0) throw new Error('no price');
-      return { price: d.c, volume: d.v || 0, source: 'Finnhub' };
+      const vol = (d.v || 0) * CAPTURE_MULTIPLIER;
+      return { price: d.c, volume: vol, source: 'Finnhub' };
     },
 
     // Stooq - price + volume
@@ -39,16 +47,21 @@ export default async function handler(req, res) {
       const d = await r.json();
       const sym = d.symbols?.[0];
       const p = parseFloat(sym?.close);
-      const v = parseFloat(sym?.volume) || 0;
+      const vol = (parseFloat(sym?.volume) || 0) * CAPTURE_MULTIPLIER;
       if (!p || p <= 0) throw new Error('no price');
-      return { price: p, volume: v, source: 'Stooq' };
+      return { price: p, volume: vol, source: 'Stooq' };
     }
   ];
 
   for (const fn of sources) {
     try {
-      const r = await fn();
-      return res.json({ price: r.price, volume: r.volume, source: r.source, ts: Date.now() });
+      const result = await fn();
+      return res.json({
+        price:  result.price,
+        volume: result.volume,
+        source: result.source,
+        ts:     Date.now()
+      });
     } catch(e) {}
   }
 
