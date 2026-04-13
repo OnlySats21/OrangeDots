@@ -592,7 +592,18 @@ var WEEK_HIST = [
 // This is our best estimate for Mon Apr 7 when gate was open at ~$80k BTC
 // Update every Monday once 8-K confirms actual purchases
 
-var HOLDINGS = 780897, AVG_COST = 75577, MSTR_SHARES = 346800000; // Q1 2026 approx after ATM issuances
+// ================================================================
+// UPDATE EVERY MONDAY AFTER 8-K CONFIRMS
+// ================================================================
+// STEP 1: Update these 3 numbers from the 8-K filing
+var HOLDINGS    = 780897;   // total BTC held (from 8-K "Aggregate BTC Holdings")
+var AVG_COST    = 75577;    // avg purchase price (from 8-K "Average Purchase Price")
+var MSTR_SHARES = 346800000; // shares outstanding (update if MSTR issues new shares)
+
+// STEP 2: Add new row to PURCHASE_HIST below
+// STEP 3: Reset WEEK_HIST to all null for new week
+// STEP 4: Update baseDeploy in M constants if deployment rate changed significantly
+// ================================================================ // Q1 2026 approx after ATM issuances
 
 // Fear and Greed
 var FG_SCORE = 50, FG_NEEDLE = Math.PI;
