@@ -549,7 +549,7 @@ footer{border-top:1px solid var(--line);padding:14px 18px;font-size:11px;color:v
 // ============================================================
 // STATE
 // ============================================================
-var BTC_P  = 76000, STRC_P = 0, STRC_VOL = 0, DAY_BTC = 0, DAY_IDX = 0;
+var BTC_P  = 71000, STRC_P = 0, STRC_VOL = 0, DAY_BTC = 0, DAY_IDX = 0;
 var rfNum  = 0, cdSec  = 60, _lastDateET = '';
 var _strcCache = 0, _strcSrc = 'init';
 
@@ -696,32 +696,38 @@ function getSession(){
   // volume * 40% = new ATM issuance, * 97.5% = after 2.5% commission
   var sNet, mNet;
 
-  if(STRC_VOL > 500000){
-    // Volume-based (confirmed ~99% accurate vs 8-K)
-    var strcDollars = STRC_VOL * 0.40 * 0.975;
-    sNet = strcDollars / 1e6; // $M
-    // MSTR: only include if MSTR was actually active this week
-    // Proxy: if STRC_VOL is very high relative to avg, MSTR likely zero
+  // Time fractions
+  var strcFrac = Math.min(min / 1440, 1); // 0-1 through 24h
+  var mstrFrac = !wkday ? 0 :
+                 min < M_OPEN  ? 0 :
+                 min >= M_CLOSE ? 1 :
+                 (min - M_OPEN) / (M_CLOSE - M_OPEN);
+
+  if(STRC_VOL > 500000 && strcFrac > 0.01){
+    // Volume-based: soFar = actual BTC from volume so far today
+    var strcDollarsSoFar = STRC_VOL * 0.40 * 0.975;
+    var soFarStrc = strcDollarsSoFar / 1e6; // $M already deployed
     mNet = STRC_VOL > 5000000 ? 0 : M.baseDeploy * M.mstrPct;
+    var soFarMstr = mNet * mstrFrac;
+    sNet = soFarStrc; // for display labels
+
+    // fullDay: extrapolate STRC pace to end of day
+    var strcPace  = soFarStrc / strcFrac; // projected full-day $M at current pace
+    var fullDayStrc = strcPace / p * 1e6;
+    var fullDayMstr = mNet / p * 1e6;
+    fullDay = Math.round(fullDayStrc + fullDayMstr);
+
+    // soFar = what's actually been acquired today
+    soFar = Math.round((soFarStrc + soFarMstr) * 1e6 / p);
   } else {
-    // Fallback: use weighted 8-K average
+    // Fallback to weighted 8-K average
     sNet = M.baseDeploy * M.strcPct;
     mNet = M.baseDeploy * M.mstrPct;
+    fullDay = Math.round((sNet + mNet) * 1e6 / p);
+    soFar   = Math.round((sNet * strcFrac + mNet * mstrFrac) * 1e6 / p);
   }
 
-  var fullDay = Math.round((sNet + mNet) * 1e6 / p);
-
-  // Time fractions for intraday progress
-  // STRC: proportional to time elapsed in current day (0-1440 min)
-  var strcFrac  = Math.min(min / 1440, 1);
-  // MSTR: only during market hours
-  var mstrFrac  = !wkday ? 0 :
-                  min < M_OPEN  ? 0 :
-                  min >= M_CLOSE ? 1 :
-                  (min - M_OPEN) / (M_CLOSE - M_OPEN);
-
-  var soFar = Math.round((sNet * strcFrac + mNet * mstrFrac) * 1e6 / p);
-  var totalFrac = (strcFrac * M.strcPct + mstrFrac * M.mstrPct);
+  var totalFrac = strcFrac * 0.8 + mstrFrac * 0.2;
 
   // Session label
   var type='', label='';
@@ -1977,7 +1983,7 @@ window.addEventListener('orientationchange',function(){
 
 <footer>
   <div class="footer-top" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:5px;margin-bottom:10px">
-    <span>Recency-weighted 8-K model: $125M/day avg (9 weeks confirmed data) x STRC premium scale / BTC price = daily BTC est.</span>
+    <span>Volume-based STRC model: (daily STRC vol × 40% × 97.5%) / BTC price. Fallback: $136M/day 8-K weighted avg. Confirmed weekly via SEC 8-K every Monday.</span>
     <span id="ftr">initializing...</span>
   </div>
   <div class="footer-bot" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;padding-top:10px;border-top:1px solid var(--line)">
