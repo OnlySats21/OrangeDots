@@ -579,10 +579,10 @@ var M = {
 // Week of Apr 7-13, 2026:
 // Mon Apr 7: gate OPEN all day. BTC avg ~$83k. Full day estimate.
 var WEEK_HIST = [
-  null,  // MON Apr 13 -- today (live)
-  null,  // TUE Apr 14 -- future
-  null,  // WED Apr 15 -- future
-  null,  // THU Apr 16 -- future
+  6094,  // MON Apr 13 -- LOCKED: $1.16B STRC vol / $74,237 BTC (record day)
+  4618,  // TUE Apr 14 -- LOCKED: ~$900M STRC vol / $76,000 BTC
+  0,     // WED Apr 15 -- LOCKED: ex-div day, STRC $99.04, ~0 ATM issuance
+  null,  // THU Apr 16 -- today (live)
   null,  // FRI Apr 17 -- future
   null,  // SAT Apr 18 -- weekend
   null   // SUN Apr 19 -- weekend
@@ -677,10 +677,14 @@ function getETDow(){
 }
 
 function isGateOpen(){
-  // Gate open = STRC above $99.50 par
-  // STRC runs 24/7 - no time restriction
-  // Gate status is for DISPLAY only - estimates run regardless
+  // Gate: above $100 = fully open, $99-100 = reduced, below $99 = minimal
   return STRC_P >= 99.5;
+}
+function gateStatus(){
+  if(STRC_P <= 0) return 'CHECKING';
+  if(STRC_P >= 100.0) return 'OPEN';
+  if(STRC_P >= 99.5)  return 'REDUCED';
+  return 'CLOSED';
 }
 
 
@@ -714,9 +718,15 @@ function getSession(){
                  min >= M_CLOSE ? 1 :
                  (min - M_OPEN) / (M_CLOSE - M_OPEN);
 
+  // Below par: ATM issuance drops sharply - only volume ABOVE $100 triggers issuance
+  // When STRC < $100, effective capture rate near zero
+  var abovePar = STRC_P >= 100.00;
+  var effectiveCapture = abovePar ? 0.40 : Math.max(0, (STRC_P - 99.0) * 0.10);
+  // e.g. at $99.50 = 5% capture, at $99.00 = 0% capture
+
   if(STRC_VOL > 500000 && strcFrac > 0.01){
     // Volume-based: soFar = actual BTC from volume so far today
-    var strcDollarsSoFar = STRC_VOL * 0.40 * 0.975;
+    var strcDollarsSoFar = STRC_VOL * effectiveCapture * 0.975;
     var soFarStrc = strcDollarsSoFar / 1e6; // $M already deployed
     mNet = STRC_VOL > 5000000 ? 0 : M.baseDeploy * M.mstrPct;
     var soFarMstr = mNet * mstrFrac;
@@ -1125,71 +1135,66 @@ function fetchBTC(cb){
 
 
 function fetchSTRC(cb){
-  var _timer = null;
+  var _scheduled = false;  // ensures exactly ONE 60s reschedule fires
 
   function done(p, vol, src){
     if(!p||isNaN(p)||p<=0||p>9999) return;
-    if(_timer){ clearTimeout(_timer); _timer=null; }
-    var dollarVol = vol>0 ? vol*p : 0;
-    _strcCache=p; _strcSrc=src;
+    var dollarVol = vol > 0 ? vol * p : 0;
+    _strcCache = p;
+    _strcSrc   = src;
     cb(p, true, dollarVol);
-    // Always reschedule exactly once, 60s from now
-    setTimeout(function(){ fetchSTRC(cb); }, 60000);
+    // Only the FIRST successful source schedules the next cycle
+    if(!_scheduled){
+      _scheduled = true;
+      setTimeout(function(){ fetchSTRC(cb); }, 60000);
+    }
   }
 
-  // Show seed immediately so display never shows "fetching"
-  cb(_strcCache>0 ? _strcCache : 100.00, false, STRC_VOL);
+  // Show cached/seed price immediately - never blank
+  cb(_strcCache > 0 ? _strcCache : 99.42, false, STRC_VOL);
 
-  // SOURCE 1: Finnhub - CORS open, works on mobile Safari
+  // SOURCE 1: Vercel /api/strc - same domain, no CORS, returns price+volume
+  fetch('/api/strc?t='+Date.now(), {cache:'no-store'})
+    .then(function(r){ return r.json(); })
+    .then(function(d){ if(d&&d.price>0) done(d.price, d.volume||0, d.source||'API'); })
+    .catch(function(){});
+
+  // SOURCE 2: Finnhub - CORS-open, fast, returns price+volume
   fetch('https://finnhub.io/api/v1/quote?symbol=STRC&token=d7as1i9r01qtpbh9kg8g', {cache:'no-store'})
     .then(function(r){ return r.json(); })
     .then(function(d){ if(d&&d.c>0) done(d.c, d.v||0, 'Finnhub'); })
     .catch(function(){});
 
-  // SOURCE 2: Stooq - CORS open, no key needed
-  fetch('https://stooq.com/q/l/?s=strc.us&f=sd2t2ohlcv&h&e=json', {cache:'no-store'})
-    .then(function(r){ return r.json(); })
-    .then(function(d){
-      var sym=d.symbols&&d.symbols[0];
-      var p=sym&&parseFloat(sym.close);
-      var v=sym&&parseFloat(sym.volume)||0;
-      if(p>0) done(p, v, 'Stooq');
-    }).catch(function(){});
-
-  // SOURCE 3: Yahoo direct
+  // SOURCE 3: Yahoo Finance direct
   fetch('https://query2.finance.yahoo.com/v7/finance/quote?symbols=STRC&fields=regularMarketPrice,regularMarketVolume,marketState,preMarketPrice,postMarketPrice', {cache:'no-store'})
     .then(function(r){ return r.json(); })
     .then(function(d){
-      var q=d.quoteResponse&&d.quoteResponse.result&&d.quoteResponse.result[0];
+      var q = d.quoteResponse&&d.quoteResponse.result&&d.quoteResponse.result[0];
       if(!q) return;
-      var st=q.marketState||'REGULAR';
-      var p=st==='PRE'&&q.preMarketPrice>0?q.preMarketPrice:
-            st==='POST'&&q.postMarketPrice>0?q.postMarketPrice:
-            q.regularMarketPrice||0;
+      var st = q.marketState||'REGULAR';
+      var p  = st==='PRE'  && q.preMarketPrice  > 0 ? q.preMarketPrice
+             : st==='POST' && q.postMarketPrice > 0 ? q.postMarketPrice
+             : q.regularMarketPrice||0;
       if(p>0) done(p, q.regularMarketVolume||0, 'Yahoo/'+st);
     }).catch(function(){});
 
-  // SOURCE 4: allorigins proxy -> Yahoo
+  // SOURCE 4: allorigins proxy -> Yahoo (CORS fallback)
   fetch('https://api.allorigins.win/raw?url='+encodeURIComponent('https://query2.finance.yahoo.com/v7/finance/quote?symbols=STRC&fields=regularMarketPrice,regularMarketVolume,marketState'), {cache:'no-store'})
     .then(function(r){ return r.text(); })
     .then(function(t){
-      var d=JSON.parse(t);
-      var q=d.quoteResponse&&d.quoteResponse.result&&d.quoteResponse.result[0];
+      var d = JSON.parse(t);
+      var q = d.quoteResponse&&d.quoteResponse.result&&d.quoteResponse.result[0];
       if(q&&q.regularMarketPrice>0) done(q.regularMarketPrice, q.regularMarketVolume||0, 'YF-proxy');
     }).catch(function(){});
 
-  // SOURCE 5: Vercel serverless (same domain, no CORS issues)
-  fetch('/api/strc?t='+Date.now(), {cache:'no-store'})
-    .then(function(r){ return r.json(); })
-    .then(function(d){ if(d.price>0) done(d.price, d.volume||0, d.source||'API'); })
-    .catch(function(){});
-
-  // If nothing responds in 10s, reschedule in 60s anyway
-  _timer = setTimeout(function(){
-    _timer=null;
-    if(_strcCache>0) cb(_strcCache, false, STRC_VOL);
-    setTimeout(function(){ fetchSTRC(cb); }, 60000);
-  }, 10000);
+  // Hard guarantee: if ALL sources fail within 5s, reschedule in 30s anyway
+  setTimeout(function(){
+    if(!_scheduled){
+      _scheduled = true;
+      if(_strcCache>0) cb(_strcCache, false, STRC_VOL); // show cache
+      setTimeout(function(){ fetchSTRC(cb); }, 30000);  // retry sooner
+    }
+  }, 5000);
 }
 
 
@@ -1842,29 +1847,22 @@ function renderGateBanner(){
   var txt=el('gateBannerTxt');
   if(!banner||!txt)return;
   if(STRC_P<=0){banner.style.display='none';return;}
-  var min=getETMinutes(), dow=getETDow();
-  var wkday=(dow!=='Sat'&&dow!=='Sun');
-  var S_CLOSE=1200,S_OPEN=240;
-  var inSession=wkday&&min>=S_OPEN&&min<S_CLOSE; // 4am-8pm ET weekdays
-  var ao=STRC_P>=99.5 && inSession;
   banner.style.display='flex';
-  if(ao){
+  if(STRC_P >= 100.0){
     banner.className='gate-banner open';
     document.body.classList.add('gate-open');
-    txt.textContent='ATM GATE OPEN  --  STRC at $'+STRC_P.toFixed(2)+' (above $99.50 par)  --  Strategy is actively accumulating BTC';
+    txt.textContent='ATM GATE OPEN -- STRC $'+STRC_P.toFixed(2)+' (above par) -- Strategy is actively accumulating BTC';
+  } else if(STRC_P >= 99.5){
+    banner.className='gate-banner open';
+    document.body.classList.add('gate-open');
+    txt.textContent='ATM GATE REDUCED -- STRC $'+STRC_P.toFixed(2)+' (below $100 par, ex-dividend effect, reduced issuance)';
   } else {
     banner.className='gate-banner closed';
     document.body.classList.remove('gate-open');
-    var afterHours=min>=1200&&wkday;
-    txt.textContent=afterHours?
-      'SESSION COMPLETE  --  Full day estimate shown  --  Next session 4:00 AM ET':
-      (STRC_P<99.5?'ATM GATE CLOSED  --  STRC at $'+STRC_P.toFixed(2)+' (below $99.50 par)':'ATM GATE CLOSED  --  Market closed')+' (below $99.50 par)  --  Only MSTR common ATM running';
+    txt.textContent='ATM GATE CLOSED -- STRC $'+STRC_P.toFixed(2)+' (below $99.50 par) -- Accumulation paused';
   }
 }
 
-// ============================================================
-// MOBILE NAV
-// ============================================================
 function renderMobileNav(sess){
   var ao=sess?sess.ao:isGateOpen();
   var soFar=sess?sess.soFar:0;
