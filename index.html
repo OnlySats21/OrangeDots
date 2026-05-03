@@ -3,2095 +3,1236 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Orange Dots - Strategy BTC Accumulation Tracker</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<title>Orange Dots — Strategy Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#07090d;--s1:#0b0f16;--s2:#10151f;
-  --line:rgba(255,255,255,.07);--line2:rgba(255,255,255,.13);
-  --og:#f7931a;--og2:#ffa940;--gn:#00d084;--rd:#ff4060;--bl:#4b9eff;
-  --txt:#7a8fa8;--txt2:#3a4f65;--hi:#e8eef5;
-  --mono:'JetBrains Mono',monospace;--sans:'DM Sans',sans-serif;
+  --bg:#07090d;--s1:#0c0f16;--s2:#111620;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.1);
+  --og:#f7931a;--og2:#ffb347;--og3:rgba(247,147,26,0.1);
+  --gn:#22c55e;--gn2:rgba(34,197,94,0.1);
+  --rd:#ef4444;--rd2:rgba(239,68,68,0.1);
+  --bl:#60a5fa;--bl2:rgba(96,165,250,0.1);
+  --yl:#fbbf24;
+  --txt:#e2e8f0;--txt2:#94a3b8;--txt3:#475569;
+  --mono:'JetBrains Mono',monospace;--sans:'Syne',sans-serif;
 }
-body{background:var(--bg);color:var(--txt);font-family:var(--sans);min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden}
-body.gate-open{box-shadow:inset 0 0 200px rgba(247,147,26,.04)}
+html{background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:14px;scroll-behavior:smooth}
+body{min-height:100vh;overflow-x:hidden}
 
-/* AMBIENT GRID */
-@keyframes gridpulse{0%,100%{opacity:.025}50%{opacity:.065}}
-body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:1;
-  background-image:linear-gradient(rgba(247,147,26,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(247,147,26,.05) 1px,transparent 1px);
-  background-size:52px 52px;animation:gridpulse 7s ease-in-out infinite}
-
-/* CANVASES */
-#bgCanvas,#sessCanvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
+/* TOPBAR */
+.topbar{background:var(--og);color:#000;font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:1px;text-align:center;padding:6px;display:none}
+.topbar.show{display:block}
 
 /* HEADER */
-header{position:sticky;top:0;z-index:100;background:rgba(7,9,13,.96);backdrop-filter:blur(24px);border-bottom:1px solid var(--line);height:88px;display:flex;align-items:center;justify-content:center;padding:0 24px}
-@keyframes hdrshine{0%,100%{border-bottom-color:rgba(255,255,255,.07)}50%{border-bottom-color:rgba(247,147,26,.18)}}
-header{animation:hdrshine 6s ease-in-out infinite}
-.hdr-l{position:absolute;left:20px;display:flex;gap:8px;align-items:center}
-.hdr-r{position:absolute;right:20px;display:flex;gap:8px;align-items:center}
-.logo-wrap{display:flex;align-items:center;gap:20px}
-.logo-name{font-size:34px;font-weight:700;color:#fff;letter-spacing:-.8px;line-height:1}
-.logo-name .O{color:var(--og)}
-.logo-sub{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--txt2);margin-top:5px;font-weight:500}
-.pill{display:flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;font-size:10.5px;font-weight:600;font-family:var(--mono);border:1px solid var(--line2);background:var(--s1);color:var(--txt);transition:all .5s}
-.pdot{width:6px;height:6px;border-radius:50%;background:var(--gn);box-shadow:0 0 5px var(--gn);animation:blink 2s infinite}
+.header{display:flex;align-items:center;justify-content:space-between;padding:18px 28px;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;background:rgba(7,9,13,0.95);backdrop-filter:blur(20px)}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-mark{display:flex;gap:5px;align-items:center}
+.dot{width:11px;height:11px;border-radius:50%;background:var(--og)}
+.dot:nth-child(1){animation:dp 2s ease-in-out infinite}
+.dot:nth-child(2){animation:dp 2s ease-in-out .25s infinite;opacity:.65}
+.dot:nth-child(3){animation:dp 2s ease-in-out .5s infinite;opacity:.35}
+@keyframes dp{0%,100%{transform:scale(1)}50%{transform:scale(1.4)}}
+.logo-text{font-size:22px;font-weight:800;letter-spacing:-.5px}
+.logo-text em{color:var(--og);font-style:normal}
+.logo-sub{font-family:var(--mono);font-size:9px;color:var(--txt3);letter-spacing:2px;text-transform:uppercase;margin-top:1px}
+.hdr-right{display:flex;align-items:center;gap:20px}
+.live-badge{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;color:var(--gn)}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--gn);animation:blink 1.5s infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
-.pill.on{border-color:rgba(0,208,132,.35);background:rgba(0,208,132,.1);color:var(--gn)}
-.pill.off{border-color:rgba(255,64,96,.3);background:rgba(255,64,96,.08);color:var(--rd)}
-@keyframes pillglow{0%,100%{box-shadow:0 0 6px rgba(0,208,132,.1)}50%{box-shadow:0 0 20px rgba(0,208,132,.4)}}
-.pill.on{animation:pillglow 2.5s ease-in-out infinite}
+.hdr-time{font-family:var(--mono);font-size:10px;color:var(--txt3)}
 
-/* LOGO DOTS */
-@keyframes d1lp{0%{transform:scale(0);opacity:0}6%{transform:scale(1.18);opacity:1}14%{transform:scale(1);opacity:1}72%{transform:scale(1);opacity:1}88%{transform:scale(.85);opacity:0}100%{transform:scale(0);opacity:0}}
-@keyframes d2lp{0%,14%{transform:scale(0);opacity:0}24%{transform:scale(1.18);opacity:1}31%{transform:scale(1);opacity:1}72%{transform:scale(1);opacity:1}88%{transform:scale(.85);opacity:0}100%{transform:scale(0);opacity:0}}
-@keyframes d3lp{0%,30%{transform:scale(0);opacity:0}42%{transform:scale(1.22);opacity:1}49%{transform:scale(.96);opacity:1}53%{transform:scale(1);opacity:1}72%{transform:scale(1);opacity:1}88%{transform:scale(.85);opacity:0}100%{transform:scale(0);opacity:0}}
-@keyframes glp{0%,30%{opacity:0}46%{opacity:.6}62%{opacity:.22}74%{opacity:.48}88%{opacity:0}100%{opacity:0}}
-@keyframes trp{0%,18%{opacity:0}28%{opacity:.9}72%{opacity:.9}88%{opacity:0}100%{opacity:0}}
-.ds{animation:d1lp 3.8s cubic-bezier(.4,0,.2,1) infinite;transform-origin:9px 38px}
-.dm{animation:d2lp 3.8s cubic-bezier(.4,0,.2,1) infinite;transform-origin:28px 26px}
-.dl{animation:d3lp 3.8s cubic-bezier(.34,1.56,.64,1) infinite;transform-origin:54px 11px}
-.dlg{animation:glp 3.8s ease-in-out infinite}
-.tr{animation:trp 3.8s ease infinite}
-
-/* MAIN */
-main{max-width:1100px;margin:0 auto;padding:28px 18px 80px;position:relative;z-index:2}
+/* NAV TABS */
+.nav{display:flex;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;background:var(--s1);position:relative}
+.nav::before{content:'TAP A SECTION';position:absolute;right:16px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:8px;letter-spacing:1.5px;color:var(--txt3);pointer-events:none;opacity:.6}
+.nav::-webkit-scrollbar{display:none}
+.nav-tab{flex-shrink:0;padding:12px 22px;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--txt3);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap;position:relative;user-select:none}
+.nav-tab::after{content:'';position:absolute;inset:0;background:transparent;transition:background .15s}
+.nav-tab:hover{color:var(--og);background:rgba(247,147,26,0.04)}
+.nav-tab:hover::after{background:rgba(247,147,26,0.04)}
+.nav-tab.active{color:var(--og);border-color:var(--og);background:rgba(247,147,26,0.06);font-weight:600}
+.nav-tab:active{transform:scale(0.97)}
+/* The square indicators */
+.nav-tab .ind{display:inline-block;width:5px;height:5px;border-radius:1px;background:var(--txt3);margin-right:6px;vertical-align:middle;margin-bottom:1px;transition:background .2s}
+.nav-tab:hover .ind{background:var(--og)}
+.nav-tab.active .ind{background:var(--og)}
 
 /* PRICE STRIP */
-.strip{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);border-radius:14px;background:var(--s1);overflow:hidden;margin-bottom:18px;position:relative}
-.strip::after{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(247,147,26,.04),transparent);animation:scan 4s ease-in-out infinite;pointer-events:none}
-@keyframes scan{0%{left:-60%}100%{left:160%}}
-.cell{padding:16px 18px;border-right:1px solid var(--line);position:relative}
-.cell:last-child{border-right:none}
-.cbar{position:absolute;top:0;left:0;right:0;height:2px}
-.b-og{background:linear-gradient(90deg,var(--og),var(--og2))}.b-gn{background:var(--gn)}.b-dim{background:rgba(255,255,255,.1)}
-.lbl{font-size:10.5px;letter-spacing:2px;text-transform:uppercase;color:var(--txt2);font-weight:600;margin-bottom:6px}
-.val{font-size:24px;font-weight:700;font-family:var(--mono);color:var(--hi);letter-spacing:-.4px;transition:color .3s}
-.val.up{color:var(--gn);text-shadow:0 0 20px rgba(0,208,132,.4)}
-.val.dn{color:var(--rd);text-shadow:0 0 20px rgba(255,64,96,.4)}
-.sub{font-size:11.5px;color:var(--txt2);margin-top:4px;font-family:var(--mono)}
-.sub .up{color:var(--gn)}.sub .dn{color:var(--rd)}
-.atmbadge{display:inline-flex;align-items:center;font-size:9px;font-weight:700;font-family:var(--mono);padding:2px 9px;border-radius:20px;margin-top:5px;transition:all .5s}
-.atmbadge.on{color:var(--gn);background:rgba(0,208,132,.1);border:1px solid rgba(0,208,132,.3)}
-.atmbadge.off{color:var(--rd);background:rgba(255,64,96,.08);border:1px solid rgba(255,64,96,.2)}
-body.gate-open #strcVal{animation:valbreath 3s ease-in-out infinite}
-@keyframes valbreath{0%,100%{text-shadow:0 0 8px rgba(0,208,132,.2)}50%{text-shadow:0 0 28px rgba(0,208,132,.6)}}
+.price-strip{display:grid;grid-template-columns:repeat(5,1fr);border-bottom:1px solid var(--border)}
+.pc{padding:12px 18px;border-right:1px solid var(--border);transition:background .15s}
+.pc:last-child{border-right:none}
+.pc:hover{background:rgba(255,255,255,0.02)}
+.pc .lbl{font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--txt3);margin-bottom:5px}
+.pc .val{font-family:var(--mono);font-size:17px;font-weight:600;letter-spacing:-.5px}
+.pc .chg{font-family:var(--mono);font-size:10px;margin-top:3px}
+.up{color:var(--gn)}.dn{color:var(--rd)}.neu{color:var(--txt2)}
 
-/* CARD */
-.card{background:var(--s1);border:1px solid var(--line);border-radius:14px;overflow:hidden;transition:border-color .3s,box-shadow .3s}
-.card:hover{border-color:rgba(247,147,26,.2);box-shadow:0 0 40px rgba(247,147,26,.06)}
-@media(max-width:768px){.card>div[style*='grid-template-columns:280px']{display:block!important}}
-.ctop{padding:13px 15px 11px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
-.ctt{font-size:11px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:var(--txt2)}
-.cts{font-size:10.5px;color:var(--txt2);margin-top:3px;opacity:.6;line-height:1.5}
-.bdg{font-size:10px;font-weight:700;letter-spacing:.8px;padding:2px 8px;border-radius:20px;white-space:nowrap;border:1px solid var(--line2);color:var(--txt2);background:var(--s2);flex-shrink:0}
-.bdg.live{border-color:rgba(247,147,26,.3);color:var(--og);background:rgba(247,147,26,.08)}
-.bdg.ver{border-color:rgba(0,208,132,.3);color:var(--gn);background:rgba(0,208,132,.07)}
-.bdg.hr{border-color:rgba(74,158,255,.3);color:var(--bl);background:rgba(74,158,255,.07)}
-.bdg.cl{border-color:rgba(255,64,96,.25);color:var(--rd);background:rgba(255,64,96,.07)}
-@keyframes liveblink{0%,100%{opacity:1;box-shadow:0 0 8px rgba(247,147,26,.2)}50%{opacity:.65;box-shadow:0 0 18px rgba(247,147,26,.55)}}
-.bdg.live{animation:liveblink 1.8s ease-in-out infinite}
+/* SECTIONS */
+.section{display:none;padding:0}
+.section.active{display:block}
+
+/* GRID */
+.grid{display:grid;gap:1px;background:var(--border)}
+.g-2{grid-template-columns:1fr 1fr}
+.g-3{grid-template-columns:1fr 1fr 1fr}
+.g-4{grid-template-columns:1fr 1fr 1fr 1fr}
+.g-1-2{grid-template-columns:1fr 2fr}
+.g-2-1{grid-template-columns:2fr 1fr}
+.panel{background:var(--bg);padding:20px}
+.span2{grid-column:span 2}
+.span3{grid-column:span 3}
+.span4{grid-column:span 4}
+
+/* PANEL PARTS */
+.p-label{font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--txt3);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.badge{padding:2px 7px;border-radius:2px;font-size:8px;letter-spacing:1px;font-weight:600}
+.badge.og{background:var(--og3);color:var(--og)}
+.badge.gn{background:var(--gn2);color:var(--gn)}
+.badge.bl{background:var(--bl2);color:var(--bl)}
+.badge.rd{background:var(--rd2);color:var(--rd)}
+
+.big{font-family:var(--mono);font-size:38px;font-weight:700;letter-spacing:-2px;line-height:1;color:var(--og)}
+.big.white{color:var(--txt)}
+.big.green{color:var(--gn)}
+.big.red{color:var(--rd)}
+.big-sub{font-family:var(--mono);font-size:10px;color:var(--txt2);margin-top:6px}
+
+/* STAT BOXES */
+.stats{display:grid;gap:8px;margin-top:14px}
+.stats.c2{grid-template-columns:1fr 1fr}
+.stats.c3{grid-template-columns:1fr 1fr 1fr}
+.stat{background:var(--s1);border:1px solid var(--border);padding:10px 12px}
+.stat .sl{font-family:var(--mono);font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--txt3);margin-bottom:5px}
+.stat .sv{font-family:var(--mono);font-size:13px;font-weight:600}
+.stat .ss{font-family:var(--mono);font-size:9px;color:var(--txt2);margin-top:3px}
+
+/* PROGRESS BAR */
+.prog-wrap{margin-top:12px}
+.prog-label{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--txt2);margin-bottom:6px}
+.prog-track{background:var(--s2);height:8px;border-radius:2px;overflow:hidden;position:relative}
+.prog-fill{height:100%;border-radius:2px;transition:width 1s ease;position:relative;overflow:hidden}
+.prog-fill::after{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);animation:shine 2s infinite}
+@keyframes shine{to{left:200%}}
+.prog-fill.og{background:linear-gradient(90deg,var(--og),var(--og2))}
+.prog-fill.gn{background:var(--gn)}
+.prog-fill.bl{background:var(--bl)}
+
+/* MODELS */
+.model-row{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-left:3px solid var(--border2);margin-bottom:8px;background:var(--s1);transition:border-color .2s}
+.model-row:hover{border-color:var(--og)}
+.model-row.rank1{border-color:var(--og)}
+.model-row.rank2{border-color:var(--bl)}
+.model-row.rank3{border-color:var(--txt3)}
+.model-name{font-size:11px;font-weight:700;letter-spacing:.5px}
+.model-src{font-family:var(--mono);font-size:9px;color:var(--txt3);margin-top:2px}
+.model-val{font-family:var(--mono);font-size:20px;font-weight:600;color:var(--og)}
+.model-note{font-family:var(--mono);font-size:9px;color:var(--txt2);text-align:right;margin-top:2px}
 
 /* WEEK BAR */
-.wkbar{background:var(--s1);border:1px solid var(--line);border-radius:12px;padding:13px 16px;margin-bottom:18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-.wkl{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--txt2);font-weight:600;margin-bottom:3px}
-.wkr{font-size:15px;font-weight:700;color:var(--hi)}
-.wkdays{display:flex;gap:4px;flex:1}
-.wd{padding:4px 9px;border-radius:7px;border:1px solid var(--line);font-size:9.5px;font-weight:700;letter-spacing:.5px;color:var(--txt2);font-family:var(--mono);flex:1;text-align:center;transition:all .3s}
-.wd.done{background:rgba(247,147,26,.07);border-color:rgba(247,147,26,.2);color:rgba(247,147,26,.55)}
-@keyframes nowring{0%,100%{box-shadow:0 0 0 0 rgba(247,147,26,0),0 0 10px rgba(247,147,26,.2)}50%{box-shadow:0 0 0 4px rgba(247,147,26,.12),0 0 24px rgba(247,147,26,.4)}}
-.wd.now{background:rgba(247,147,26,.15);border-color:var(--og);color:var(--og);animation:nowring 2.5s ease-in-out infinite}
-.wd.fut{opacity:.16}
-.wkright{text-align:right}
-.wktl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--txt2);font-weight:600;margin-bottom:3px}
-@keyframes wktvpulse{0%,100%{color:var(--og)}50%{color:var(--og2)}}
-.wktv{font-size:17px;font-weight:700;font-family:var(--mono);color:var(--og);animation:wktvpulse 5s ease-in-out infinite}
+.week-row{display:grid;grid-template-columns:28px 1fr 80px 36px;gap:8px;align-items:center;margin-bottom:9px}
+.day-lbl{font-family:var(--mono);font-size:9px;color:var(--txt3);text-transform:uppercase;letter-spacing:1px}
+.bar-track{background:var(--s2);height:7px;border-radius:2px;overflow:hidden}
+.bar-fill{height:100%;border-radius:2px;transition:width .8s ease}
+.bar-fill.og{background:linear-gradient(90deg,var(--og),var(--og2))}
+.bar-fill.live{background:linear-gradient(90deg,var(--og),var(--og2));animation:shimmer 1.5s infinite}
+@keyframes shimmer{0%,100%{opacity:1}50%{opacity:.65}}
+.bar-fill.zero{background:var(--txt3);opacity:.4}
+.bar-fill.fut{background:var(--txt3);opacity:.2}
+.day-btc{font-family:var(--mono);font-size:10px;text-align:right}
+.day-st{font-family:var(--mono);font-size:8px;text-align:right}
+.st-done{color:var(--gn)}.st-live{color:var(--og)}.st-fut{color:var(--txt3)}
 
-/* 3-COL */
-.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
+/* GAUGE */
+.gauge-wrap{text-align:center;padding:10px 0}
+.gauge-num{font-family:var(--mono);font-size:36px;font-weight:700;margin-top:4px}
+.gauge-lbl{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--txt2);margin-top:4px}
 
-/* EST CARD */
-.ebody{padding:22px 16px 16px;text-align:center}
-.elbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--txt2);margin-bottom:10px}
-.etick{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--og);margin-right:5px;vertical-align:middle;animation:blink 1.5s infinite}
-@keyframes bigbreath{0%,100%{text-shadow:0 0 40px rgba(247,147,26,.1)}50%{text-shadow:0 0 80px rgba(247,147,26,.3)}}
-.ebig{font-size:64px;font-weight:700;font-family:var(--mono);color:var(--og);letter-spacing:-3px;line-height:1;animation:bigbreath 4s ease-in-out infinite}
-.eunit{font-size:16px;color:rgba(247,147,26,.4);vertical-align:bottom;margin-left:3px}
-.eusd{font-size:11.5px;color:var(--txt);margin-top:9px;font-family:var(--mono)}
-.erange{font-size:9.5px;color:var(--txt2);margin-top:4px}
-.bkd{border-top:1px solid var(--line)}
-.br{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-bottom:1px solid var(--line);gap:8px}
-.br:last-child{border-bottom:none}
-.brl{font-size:10.5px;color:var(--txt)}.brn{font-size:9px;color:var(--txt2);margin-top:1.5px}
-.brv{font-size:10.5px;font-weight:700;font-family:var(--mono);color:var(--hi);white-space:nowrap}
-.brv.og{color:var(--og)}
-.warn{display:none;margin:6px 14px 0;padding:7px 11px;border-radius:7px;font-size:10px;color:#ff8090;background:rgba(255,64,96,.07);border:1px solid rgba(255,64,96,.18)}
-.warn.show{display:block}
+/* NEWS */
+.news-item{display:flex;gap:10px;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer}
+.news-item:last-child{border:none}
+.news-item:hover .nt{color:var(--og)}
+.n-bar{width:2px;min-width:2px;background:var(--og);border-radius:1px;opacity:.6}
+.nt{font-size:12px;font-weight:600;line-height:1.4;transition:color .15s}
+.nm{font-family:var(--mono);font-size:9px;color:var(--txt3);margin-top:4px;display:flex;gap:10px}
 
-/* ABSORBER */
-.abs-body{padding:16px 16px 0}
-.aratio{font-size:46px;font-weight:700;font-family:var(--mono);letter-spacing:-2px;line-height:1;transition:color .5s}
-.aratio.absorbed{color:var(--gn)}.aratio.below{color:var(--og)}
-.albl{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--txt2);margin-top:4px;margin-bottom:14px}
-.meter-track{height:10px;background:var(--s2);border-radius:5px;border:1px solid var(--line);overflow:hidden;margin-bottom:5px}
-.meter-fill{height:100%;border-radius:5px;transition:width 1.4s cubic-bezier(.4,0,.2,1);min-width:3px;position:relative;overflow:hidden}
-.meter-fill.bel{background:linear-gradient(90deg,rgba(247,147,26,.6),var(--og),var(--og2))}
-.meter-fill.abs{background:linear-gradient(90deg,rgba(0,208,132,.6),var(--gn))}
-.meter-fill::after{content:'';position:absolute;right:0;top:0;bottom:0;width:30px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);animation:msw 2s ease-in-out infinite}
-@keyframes msw{0%,100%{opacity:0}50%{opacity:1}}
-.meter-lbl{display:flex;justify-content:space-between;font-size:8.5px;font-family:var(--mono);color:var(--txt2);margin-bottom:14px}
-.bars{display:flex;gap:10px;align-items:flex-end;height:80px}
-.bcol{display:flex;flex-direction:column;align-items:center;gap:5px;flex:1}
-.btrack{width:100%;border-radius:5px 5px 0 0;background:var(--s2);border:1px solid var(--line);flex:1;display:flex;align-items:flex-end;position:relative}
-.bfill{width:100%;border-radius:4px 4px 0 0;transition:height 1.2s cubic-bezier(.4,0,.2,1);min-height:3px}
-.bfill.mine{background:linear-gradient(180deg,rgba(74,158,255,.65),rgba(30,70,180,.3))}
-.bfill.strat{background:linear-gradient(180deg,var(--og),rgba(140,60,0,.3))}
-.bfill.strat.ab{background:linear-gradient(180deg,var(--gn),rgba(0,100,50,.3))}
-.tl{position:absolute;left:-4px;right:-4px;border-top:1.5px dashed rgba(74,158,255,.35);pointer-events:none;z-index:2}
-.tl::after{content:'450';position:absolute;right:0;top:-13px;font-size:7.5px;font-family:var(--mono);color:rgba(74,158,255,.5)}
-.blbl{font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--txt2);font-weight:600}
-.bv{font-size:11px;font-weight:700;font-family:var(--mono)}
-.bv.bl{color:var(--bl)}.bv.og{color:var(--og)}.bv.gn{color:var(--gn)}
-.astats{display:flex;border-top:1px solid var(--line);margin:10px -16px 0}
-.as{flex:1;padding:10px 12px;text-align:center;border-right:1px solid var(--line)}
-.as:last-child{border-right:none}
-.asl{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--txt2);margin-bottom:4px}
-.asv{font-size:15px;font-weight:700;font-family:var(--mono)}
-.asv.og{color:var(--og)}.asv.gn{color:var(--gn)}.asv.bl{color:var(--bl)}.asv.rd{color:var(--rd)}
+/* TABLE */
+.tbl-wrap{overflow-x:auto;margin-top:8px}
+table{width:100%;border-collapse:collapse;min-width:500px}
+th{font-family:var(--mono);font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--txt3);padding:8px 12px;text-align:right;border-bottom:1px solid var(--border);font-weight:400;white-space:nowrap}
+th:first-child{text-align:left}
+td{font-family:var(--mono);font-size:11px;padding:10px 12px;text-align:right;border-bottom:1px solid var(--border);color:var(--txt)}
+td:first-child{text-align:left;color:var(--txt2)}
+tr:last-child td{border:none}
+tr:hover td{background:var(--s1)}
+.og-val{color:var(--og);font-weight:600}
+.new-badge{background:var(--gn2);color:var(--gn);font-size:8px;padding:1px 5px;border-radius:1px;margin-left:4px;vertical-align:middle}
 
-/* WEEKLY */
-.wbody{padding:13px 15px 0}
-.wtot{text-align:center;padding:4px 0 12px}
-.wtl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--txt2);margin-bottom:5px}
-.wtvn{font-size:40px;font-weight:700;font-family:var(--mono);color:var(--og);letter-spacing:-1.5px;line-height:1}
-.wtu{font-size:11px;font-family:var(--mono);color:var(--txt);margin-top:4px}
-.drows{border-top:1px solid var(--line);margin:0 -15px}
-.dr{display:flex;align-items:center;padding:7px 13px;border-bottom:1px solid var(--line);gap:8px}
-.dr:last-child{border-bottom:none}
-.dr.td{background:rgba(247,147,26,.04)}
-.drd{font-size:12px;font-weight:700;font-family:var(--mono);width:32px;color:var(--txt2)}
-.drd.now{color:var(--og)}
-.drbw{flex:1;height:5px;background:var(--s2);border-radius:3px;overflow:hidden}
-.drbf{height:100%;border-radius:3px;transition:width 1s}
-.drbf.done{background:linear-gradient(90deg,var(--og),var(--og2))}
-@keyframes bp{0%,100%{filter:brightness(1)}50%{filter:brightness(1.25)}}
-.drbf.now{background:linear-gradient(90deg,var(--og),var(--og2));animation:bp 2s ease-in-out infinite}
-.drbf.fut{background:var(--line2)}
-.drbtc{font-size:13px;font-weight:700;font-family:var(--mono);min-width:72px;text-align:right;color:var(--hi)}
-.drbtc.fut{color:var(--txt2)}.drbtc.now{color:var(--og)}
-.drst{font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;width:44px;text-align:right}
-.drst.done{color:var(--txt2)}.drst.now{color:var(--og)}.drst.fut{opacity:.3}
+/* ANALYST TARGETS */
+.target-bar{margin:14px 0}
+.target-track{background:var(--s2);height:12px;border-radius:3px;position:relative;margin-top:8px}
+.target-range{position:absolute;height:100%;background:rgba(247,147,26,.2);border-radius:3px}
+.target-current{position:absolute;top:-4px;width:3px;height:20px;background:var(--og);border-radius:1px;transform:translateX(-50%)}
+.target-avg{position:absolute;top:-4px;width:2px;height:20px;background:var(--gn);border-radius:1px;transform:translateX(-50%)}
+.target-labels{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--txt3);margin-top:6px}
 
-/* PILL MACHINE */
-.pm-stats{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid var(--line)}
-.pms{padding:11px 15px;border-right:1px solid var(--line)}
-.pms:last-child{border-right:none}
-.pmv{font-size:20px;font-weight:700;font-family:var(--mono);color:var(--hi);letter-spacing:-.5px;margin-top:4px}
+/* CAPITAL STRUCTURE */
+.cap-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.cap-item:last-child{border:none}
+.cap-name{font-size:11px;font-weight:600}
+.cap-sub{font-family:var(--mono);font-size:9px;color:var(--txt3);margin-top:2px}
+.cap-val{font-family:var(--mono);font-size:13px;font-weight:600;text-align:right}
+.cap-detail{font-family:var(--mono);font-size:9px;color:var(--txt2);text-align:right;margin-top:2px}
 
-/* FG SCORE */
-@keyframes scorebreath{0%,100%{opacity:1}50%{opacity:.7}}
-#fgScore{animation:scorebreath 4s ease-in-out infinite}
+/* DIVIDEND CALENDAR */
+.div-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--s1);border-left:3px solid var(--og);margin-bottom:8px}
+.div-name{font-size:11px;font-weight:700}
+.div-sub{font-family:var(--mono);font-size:9px;color:var(--txt3);margin-top:2px}
+.div-val{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--og);text-align:right}
+.div-date{font-family:var(--mono);font-size:9px;color:var(--txt2);text-align:right;margin-top:2px}
 
-/* MODAL */
-.modal-bg{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.82);backdrop-filter:blur(8px);overflow-y:auto;padding:20px 16px}
-.modal-bg.open{display:block}
-.modal-box{width:100%;max-width:720px;margin:0 auto;background:var(--s1);border:1px solid var(--line2);border-radius:16px;overflow:hidden}
-.modal-hdr{padding:20px 24px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
-.modal-body{padding:24px;display:flex;flex-direction:column;gap:22px}
-.modal-ftr{padding:14px 24px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
-.msig{background:var(--s2);border-radius:8px;padding:10px 14px;margin-bottom:6px}
-.disc{font-size:12.5px;color:var(--txt);line-height:1.7;background:rgba(255,64,96,.05);border:1px solid rgba(255,64,96,.15);border-radius:8px;padding:14px 16px}
+/* COMPARISON CHART */
+.chart-wrap{position:relative;height:120px;margin-top:12px}
+canvas.chart{width:100%;height:100%}
+.chart-legend{display:flex;gap:16px;margin-top:8px}
+.chart-leg-item{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;color:var(--txt2)}
+.leg-dot{width:8px;height:2px;border-radius:1px}
 
-/* FOOTER */
-footer{border-top:1px solid var(--line);padding:14px 18px;font-size:11px;color:var(--txt2);position:relative;z-index:2}
-.footer-top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:5px;margin-bottom:10px}
-.footer-bot{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;padding-top:10px;border-top:1px solid var(--line)}
+/* STRC GATE BANNER */
+.gate-banner{padding:8px 24px;font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:1px;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .3s}
+.gate-banner.open{background:rgba(34,197,94,.08);color:var(--gn);border-bottom:1px solid rgba(34,197,94,.2)}
+.gate-banner.reduced{background:rgba(247,147,26,.08);color:var(--og);border-bottom:1px solid rgba(247,147,26,.2)}
+.gate-banner.closed{background:rgba(239,68,68,.06);color:var(--rd);border-bottom:1px solid rgba(239,68,68,.15)}
+.gate-indicator{width:7px;height:7px;border-radius:50%}
+.gate-banner.open .gate-indicator{background:var(--gn);animation:blink 1.5s infinite}
+.gate-banner.reduced .gate-indicator{background:var(--og)}
+.gate-banner.closed .gate-indicator{background:var(--rd)}
 
+/* MILESTONES */
+.milestone{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.milestone:last-child{border:none}
+.m-icon{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.m-icon.done{background:var(--gn2)}
+.m-icon.next{background:var(--og3)}
+.m-icon.future{background:var(--s2)}
+.m-title{font-size:11px;font-weight:700}
+.m-sub{font-family:var(--mono);font-size:9px;color:var(--txt3);margin-top:2px}
+.m-val{font-family:var(--mono);font-size:11px;text-align:right;margin-left:auto}
 
+/* MOBILE NAV */
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:rgba(7,9,13,.97);border-top:1px solid var(--border);padding:8px 0 env(safe-area-inset-bottom);z-index:200;backdrop-filter:blur(20px)}
+.mnav-items{display:flex;justify-content:space-around}
+.mnav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 12px;cursor:pointer;color:var(--txt3);transition:color .15s;font-family:var(--mono);font-size:8px;letter-spacing:.5px;border:none;background:none}
+.mnav-btn.active{color:var(--og)}
+.mnav-btn svg{width:18px;height:18px}
 
-/* MOBILE */
-@media(max-width:640px){
-  body::after{display:none}
-  #bgCanvas,#sessCanvas{display:none}
-  header{height:auto;padding:12px 14px;position:relative}
-  .hdr-l,.hdr-r{position:static}
-  .logo-wrap{justify-content:center;width:100%}
-  .logo-name{font-size:24px}
-  main{padding:14px 12px 70px}
-  .strip{grid-template-columns:1fr 1fr}
-  .strip .val{font-size:17px}
-  .strip .lbl{font-size:9px}
-  .strip .cell{padding:12px 10px}
-  .g3{grid-template-columns:1fr}
-  .pm-stats{grid-template-columns:1fr 1fr}
-  .wkdays{gap:2px}
-  .wd{padding:3px 4px;font-size:8.5px}
-  .card>div[style*="grid-template-columns:280px"]{display:flex!important;flex-direction:column!important}
-  .wkbar{flex-direction:column;gap:10px}
+/* SCROLLBAR */
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+::-webkit-scrollbar-track{background:transparent}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .price-strip{grid-template-columns:repeat(3,1fr)}
+  .pc:nth-child(n+4){display:none}
+  .g-2,.g-3,.g-4,.g-1-2,.g-2-1{grid-template-columns:1fr}
+  .span2,.span3,.span4{grid-column:span 1}
+  .stats.c2,.stats.c3{grid-template-columns:1fr 1fr}
+  .header{padding:12px 16px}
+  .panel{padding:14px}
+  .big{font-size:30px}
+  .mobile-nav{display:block}
+  body{padding-bottom:70px}
+  .nav{display:none}
+  .hdr-time{display:none}
 }
-@media(max-width:400px){.strip{grid-template-columns:1fr}}
-
-/* ── NEW SECTIONS ── */
-.sec-wrap{margin-top:14px}
-.sec2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
-@media(max-width:700px){.sec2{grid-template-columns:1fr}}
-
-/* 8-K history table */
-.hk-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px}
-.hk-table th{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--txt2);font-weight:600;padding:8px 10px;border-bottom:1px solid var(--line);text-align:right}
-.hk-table th:first-child{text-align:left}
-.hk-table td{padding:9px 10px;border-bottom:1px solid var(--line);color:var(--txt);text-align:right;font-size:12px}
-.hk-table td:first-child{text-align:left;color:var(--hi)}
-.hk-table tr:last-child td{border-bottom:none}
-.hk-table tr:hover td{background:rgba(247,147,26,.03)}
-.hk-btc{color:var(--og);font-weight:700}
-.hk-big{color:var(--hi);font-weight:600}
-
-/* Cumulative chart */
-#btcChart{display:block;width:100%}
-.chart-wrap{padding:16px 18px;position:relative}
-
-/* Gate alert banner */
-.gate-banner{display:none;margin-bottom:14px;padding:12px 18px;border-radius:12px;border:1px solid;display:flex;align-items:center;gap:12px;font-size:12px;font-weight:600;font-family:var(--mono)}
-.gate-banner.closed{background:rgba(255,64,96,.06);border-color:rgba(255,64,96,.3);color:var(--rd)}
-.gate-banner.open{background:rgba(0,208,132,.06);border-color:rgba(0,208,132,.3);color:var(--gn)}
-.gate-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;animation:blink 1.5s infinite}
-.gate-banner.closed .gate-dot{background:var(--rd);box-shadow:0 0 8px var(--rd)}
-.gate-banner.open .gate-dot{background:var(--gn);box-shadow:0 0 8px var(--gn)}
-
-/* Mobile bottom nav */
-.mob-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:50;background:rgba(7,9,13,.97);border-top:1px solid var(--line);padding:8px 0 env(safe-area-inset-bottom,8px)}
-@media(max-width:640px){.mob-nav{display:grid;grid-template-columns:repeat(4,1fr)}}
-.mob-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0}
-.mob-lbl{font-size:7.5px;letter-spacing:1px;text-transform:uppercase;color:var(--txt2);font-weight:600}
-.mob-val{font-size:13px;font-weight:700;font-family:var(--mono);color:var(--hi)}
-.mob-val.og{color:var(--og)}.mob-val.gn{color:var(--gn)}.mob-val.rd{color:var(--rd)}.mob-val.bl{color:var(--bl)}
-
-/* Share button */
-.share-btn{background:transparent;border:1px solid rgba(247,147,26,.35);border-radius:8px;color:var(--og);font-size:10px;font-weight:700;padding:6px 14px;cursor:pointer;font-family:var(--mono);letter-spacing:.5px;transition:all .3s}
-.share-btn:hover{background:rgba(247,147,26,.1);border-color:var(--og)}
-.share-toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--s1);border:1px solid var(--gn);border-radius:8px;padding:10px 20px;font-size:12px;font-family:var(--mono);color:var(--gn);z-index:300;opacity:0;transition:opacity .3s;pointer-events:none}
-.share-toast.show{opacity:1}
+@media(max-width:420px){
+  .price-strip{grid-template-columns:1fr 1fr}
+  .pc:nth-child(n+3){display:none}
+  .stats.c3{grid-template-columns:1fr 1fr}
+}
 </style>
 </head>
 <body>
-<canvas id="bgCanvas"></canvas>
-<canvas id="sessCanvas" style="opacity:0;transition:opacity 3s"></canvas>
 
+<!-- ALERT TOPBAR -->
+<div class="topbar" id="topbar"></div>
 
-
-<header>
-  <div class="hdr-l"><div class="pill"><div class="pdot"></div><span id="clk">--:--</span> EST</div></div>
-  <div class="logo-wrap">
-    <svg width="108" height="66" viewBox="0 0 72 46" fill="none" style="overflow:visible">
-      <defs>
-        <radialGradient id="rg1" cx="40%" cy="35%"><stop offset="0%" stop-color="#7a3800"/><stop offset="100%" stop-color="#2a0e00"/></radialGradient>
-        <radialGradient id="rg2" cx="38%" cy="32%"><stop offset="0%" stop-color="#d07010"/><stop offset="100%" stop-color="#6a2800"/></radialGradient>
-        <radialGradient id="rg3" cx="34%" cy="28%"><stop offset="0%" stop-color="#fff0a0"/><stop offset="18%" stop-color="#f7931a"/><stop offset="100%" stop-color="#8a3000"/></radialGradient>
-        <radialGradient id="rgh" cx="30%" cy="25%"><stop offset="0%" stop-color="rgba(255,255,210,.55)"/><stop offset="100%" stop-color="rgba(255,255,210,0)"/></radialGradient>
-        <radialGradient id="rgg"><stop offset="0%" stop-color="rgba(247,147,26,.55)"/><stop offset="100%" stop-color="rgba(247,147,26,0)"/></radialGradient>
-      </defs>
-      <circle class="tr" cx="18" cy="33" r="1.6" fill="rgba(150,70,0,.55)" style="opacity:0"/>
-      <circle class="tr" cx="37" cy="22" r="2.2" fill="rgba(180,88,5,.6)" style="opacity:0"/>
-      <g class="ds"><circle cx="9" cy="38" r="5.5" fill="url(#rg1)"/></g>
-      <g class="dm"><circle cx="27" cy="26" r="8.5" fill="url(#rg2)"/></g>
-      <g class="dl">
-        <circle class="dlg" cx="52" cy="11" r="20" fill="url(#rgg)"/>
-        <circle cx="52" cy="11" r="14" fill="url(#rg3)"/>
-        <circle cx="52" cy="11" r="14" fill="url(#rgh)"/>
-        <circle cx="52" cy="11" r="13" fill="none" stroke="rgba(255,215,80,.28)" stroke-width="1"/>
-        <text x="52" y="16.5" text-anchor="middle" font-family="Georgia,serif" font-weight="700" font-size="14.5" fill="rgba(45,12,0,.92)">&#8383;</text>
-      </g>
-    </svg>
-    <div><div class="logo-name"><span class="O">O</span>range Dots</div><div class="logo-sub">Strategy BTC Accumulation Tracker</div></div>
+<!-- HEADER -->
+<header class="header">
+  <div class="logo">
+    <div class="logo-mark"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+    <div>
+      <div class="logo-text"><em>Orange</em> Dots</div>
+      <div class="logo-sub">Strategy Intelligence</div>
+    </div>
   </div>
-  <div class="hdr-r"><div class="pill off" id="atmPill">ATM --</div></div>
+  <div class="hdr-right">
+    <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+    <div class="hdr-time" id="hdrTime">--</div>
+  </div>
 </header>
 
-<main>
+<!-- GATE BANNER -->
+<div class="gate-banner closed" id="gateBanner">
+  <div class="gate-indicator"></div>
+  <span id="gateTxt">STRC ATM STATUS LOADING...</span>
+</div>
 
 <!-- PRICE STRIP -->
-<div class="strip">
-  <div class="cell"><div class="cbar b-og"></div><div class="lbl">STRC Price</div><div class="val" id="strcVal" style="color:var(--txt)">fetching...</div><div class="sub" id="strcSub">24/7 live</div><div class="atmbadge off" id="strcBadge">CHECKING...</div></div>
-  <div class="cell"><div class="cbar b-gn"></div><div class="lbl">BTC / USD</div><div class="val" id="btcVal">fetching...</div><div class="sub" id="btcSub">live price</div></div>
-  <div class="cell"><div class="cbar b-dim"></div><div class="lbl">Total Holdings</div><div class="val" style="font-size:16px;padding-top:3px;color:var(--hi)"><span id="holdingsStrip">780,897</span> &#8383;</div><div class="sub" id="holdingsCost">avg $75,577 &bull; $58.02B cost</div></div>
-  <div class="cell"><div class="cbar b-dim"></div><div class="lbl">Refreshed</div><div class="val" style="font-size:13px;padding-top:4px;color:var(--txt)" id="updVal">--</div><div class="sub">next <span id="cdt">60</span>s &bull; <span id="src">--</span></div></div>
+<div class="price-strip">
+  <div class="pc"><div class="lbl">BTC / USD</div><div class="val" id="sBTC">$77,018</div><div class="chg" id="sBTCc">--</div></div>
+  <div class="pc"><div class="lbl">MSTR</div><div class="val" id="sMSTR">$169.12</div><div class="chg" id="sMSTRc">--</div></div>
+  <div class="pc"><div class="lbl">STRC</div><div class="val" id="sSTRC">$99.75</div><div class="chg" id="sSTRCc">--</div></div>
+  <div class="pc"><div class="lbl">Holdings Value</div><div class="val" id="sRES">$63.1B</div><div class="chg neu" id="sRESc">818,334 BTC</div></div>
+  <div class="pc"><div class="lbl">BTC Yield YTD</div><div class="val og-val" id="sBTCY">9.6%</div><div class="chg neu">2026 year-to-date</div></div>
 </div>
 
-<!-- MSTR FEAR & GREED + KEY STATS -->
-<div class="card" style="margin-bottom:18px">
-  <div style="display:grid;grid-template-columns:280px 1fr">
-    <div style="padding:16px 20px;border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:center">
-      <div style="width:100%;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <span style="font-size:9.5px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:var(--txt2)">MSTR Fear &amp; Greed</span>
-        <span style="font-size:8.5px;color:var(--txt2);font-family:var(--mono)" id="fgUpd">calculating...</span>
+<!-- DESKTOP NAV -->
+<nav class="nav" id="mainNav">
+  <div class="nav-tab active" data-sec="overview">&#9632; Overview</div>
+  <div class="nav-tab" data-sec="accumulation">&#9632; Accumulation</div>
+  <div class="nav-tab" data-sec="strc">&#9632; STRC</div>
+  <div class="nav-tab" data-sec="investor">&#9632; Investor</div>
+  <div class="nav-tab" data-sec="history">&#9632; 8-K History</div>
+  <div class="nav-tab" data-sec="news">&#9632; News</div>
+</nav>
+
+<!-- ======================================================= -->
+<!-- SECTION: OVERVIEW -->
+<!-- ======================================================= -->
+<div class="section active" id="sec-overview">
+
+  <div class="grid g-3">
+
+    <!-- BTC HOLDINGS -->
+    <div class="panel">
+      <div class="p-label">BTC Holdings <span class="badge gn">AUTO-UPDATE</span></div>
+      <div class="big" id="oHoldings">818,334</div>
+      <div class="big-sub">Bitcoin confirmed via SEC EDGAR</div>
+      <div class="stats c2">
+        <div class="stat"><div class="sl">Avg Cost</div><div class="sv" id="oAvgCost">$75,537</div></div>
+        <div class="stat"><div class="sl">Unrealized P&amp;L</div><div class="sv" id="oPL">--</div></div>
+        <div class="stat"><div class="sl">Reserve Value</div><div class="sv" id="oRes">$63.1B</div></div>
+        <div class="stat"><div class="sl">% of 21M Supply</div><div class="sv" id="oSupply">3.897%</div></div>
       </div>
-      <canvas id="fgCv" width="220" height="124" style="display:block;width:220px;max-width:100%"></canvas>
-      <div style="font-size:42px;font-weight:700;font-family:var(--mono);letter-spacing:-2px;line-height:1;margin-top:6px;color:var(--og)" id="fgScore">--</div>
-      <div style="font-size:10.5px;letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-top:4px;color:var(--og)" id="fgMood">LOADING</div>
-      <div style="font-size:8.5px;color:var(--txt2);text-align:center;font-family:var(--mono);margin-top:3px">0 = Extreme Fear &bull; 100 = Extreme Greed</div>
     </div>
-    <div style="padding:16px 18px;display:flex;flex-direction:column;gap:10px">
-      <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--txt2);font-weight:600;margin-bottom:2px">Strategy Key Stats</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:1">
-        <div style="background:var(--s2);border:1px solid var(--line);border-radius:9px;padding:12px 14px">
-          <div class="lbl">Bitcoin Reserve Value</div>
-          <div style="font-size:22px;font-weight:700;font-family:var(--mono);color:var(--hi);letter-spacing:-.5px;margin-top:4px" id="ksReserve">$--</div>
-          <div style="font-size:9px;color:var(--txt2);font-family:var(--mono);margin-top:3px"><span id="holdingsReserve">780,897</span> &#8383; at live price</div>
-        </div>
-        <div style="background:var(--s2);border:1px solid var(--line);border-radius:9px;padding:12px 14px">
-          <div class="lbl">Unrealized P&amp;L</div>
-          <div style="font-size:22px;font-weight:700;font-family:var(--mono);letter-spacing:-.5px;margin-top:4px" id="ksPnl">$--</div>
-          <div style="font-size:9px;color:var(--txt2);font-family:var(--mono);margin-top:3px">vs avg cost $75,577</div>
-        </div>
-        <div style="background:var(--s2);border:1px solid var(--line);border-radius:9px;padding:12px 14px">
-          <div class="lbl">Next 8-K Countdown</div>
-          <div style="font-size:22px;font-weight:700;font-family:var(--mono);color:var(--bl);letter-spacing:-.5px;margin-top:4px" id="ks8k">--d --h</div>
-          <div style="font-size:9px;color:var(--txt2);font-family:var(--mono);margin-top:3px">filed every Monday</div>
-        </div>
-        <div style="background:var(--s2);border:1px solid var(--line);border-radius:9px;padding:12px 14px">
-          <div class="lbl">Last Purchase</div>
-          <div style="font-size:22px;font-weight:700;font-family:var(--mono);color:var(--og);letter-spacing:-.5px;margin-top:4px"><span id="ksLastBtc">13,927</span> &#8383;</div>
-          <div style="font-size:9px;color:var(--txt2);font-family:var(--mono);margin-top:3px"><span id="ksLastDate">Apr 6-12, 2026 @ $71,902</span></div>
-        </div>
+
+    <!-- TODAY'S ACCUMULATION -->
+    <div class="panel">
+      <div class="p-label">Today's BTC Estimate <span class="badge og">3 MODELS</span></div>
+      <div class="model-row rank1">
+        <div><div class="model-name">STRC.LIVE</div><div class="model-src">volume above $100 par · 35% capture</div></div>
+        <div style="text-align:right"><div class="model-val" id="m1v">--</div><div class="model-note" id="m1n">--</div></div>
       </div>
-      <div style="background:var(--s2);border:1px solid var(--line);border-radius:9px;padding:10px 14px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:4px">
-          <span style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--txt2);font-weight:600">BTC Price vs Avg Cost $75,577</span>
-          <span id="ksAvgCostTitle" style="font-size:10px;font-family:var(--mono)" id="ksPriceVsAvg">--</span>
+      <div class="model-row rank2">
+        <div><div class="model-name">BTC FOR CORPS</div><div class="model-src">bitcoinforcorporations.com · 8-K calibrated</div></div>
+        <div style="text-align:right"><div class="model-val" id="m2v">--</div><div class="model-note" id="m2n">--</div></div>
+      </div>
+      <div class="model-row rank3">
+        <div><div class="model-name">BTC TREASURIES</div><div class="model-src">bitcointreasuries.net · 38% capture ratio</div></div>
+        <div style="text-align:right"><div class="model-val" id="m3v">--</div><div class="model-note" id="m3n">--</div></div>
+      </div>
+    </div>
+
+    <!-- ROAD TO 1M BTC -->
+    <div class="panel">
+      <div class="p-label">Road to 1,000,000 BTC <span class="badge og">SAYLOR GOAL</span></div>
+      <div class="big" id="o1mPct">81.8%</div>
+      <div class="big-sub" id="o1mSub">818,334 of 1,000,000 BTC</div>
+      <div class="prog-wrap">
+        <div class="prog-label"><span>0</span><span id="o1mRem">181,666 remaining</span><span>1M</span></div>
+        <div class="prog-track"><div class="prog-fill og" id="o1mBar" style="width:81.8%"></div></div>
+      </div>
+      <div class="stats c2" style="margin-top:14px">
+        <div class="stat"><div class="sl">At Current Pace</div><div class="sv" id="o1mDate">Nov 2026</div><div class="ss">projected 1M date</div></div>
+        <div class="stat"><div class="sl">Avg Weekly Buy</div><div class="sv" id="oWeeklyAvg">~9,000 BTC</div><div class="ss">last 4 weeks avg</div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- WEEK BAR + SENTIMENT -->
+  <div class="grid g-2-1">
+
+    <div class="panel">
+      <div class="p-label">Week Accumulation <span class="badge og" id="oWeekRange">--</span></div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--txt2);margin-bottom:14px">Est. week total: <span id="oWeekTotal" style="color:var(--og);font-weight:600">computing...</span></div>
+      <div id="weekBar"></div>
+    </div>
+
+    <div class="panel">
+      <div class="p-label">Fear &amp; Greed</div>
+      <div class="gauge-wrap">
+        <canvas id="gaugeCanvas" width="180" height="100"></canvas>
+        <div class="gauge-num" id="fgNum">--</div>
+        <div class="gauge-lbl" id="fgLbl">loading...</div>
+      </div>
+      <div class="stats c2" style="margin-top:10px">
+        <div class="stat"><div class="sl">Yesterday</div><div class="sv" id="fgYest">--</div></div>
+        <div class="stat"><div class="sl">Last Week</div><div class="sv" id="fgWeek">--</div></div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ======================================================= -->
+<!-- SECTION: ACCUMULATION -->
+<!-- ======================================================= -->
+<div class="section" id="sec-accumulation">
+  <div class="grid g-2">
+
+    <div class="panel">
+      <div class="p-label">BTC Yield KPI <span class="badge gn">SAYLOR METRIC</span></div>
+      <div class="big green" id="aYield">9.6%</div>
+      <div class="big-sub">YTD 2026 BTC Yield — dilution-adjusted return</div>
+      <div class="stats c2" style="margin-top:14px">
+        <div class="stat">
+          <div class="sl">What it means</div>
+          <div class="sv" style="font-size:10px;line-height:1.4">BTC per share grew 9.6% YTD. Even after issuing new shares to raise capital, each existing share represents more BTC than Jan 1.</div>
         </div>
-        <div style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;position:relative">
-          <div id="ksPriceBar" style="height:100%;width:50%;border-radius:3px;background:linear-gradient(90deg,var(--gn),rgba(0,208,132,.6));transition:width .8s"></div>
+        <div class="stat">
+          <div class="sl">BTC per 1000 Shares</div>
+          <div class="sv" id="aBTCperShare">~2.35 BTC</div>
+          <div class="ss">holdings / shares outstanding</div>
         </div>
-        <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--txt2);font-family:var(--mono);margin-top:3px">
-          <span>$0</span><span id="ksAvgCostLabel">Avg $75,577</span><span id="ksPriceBarMax">$150k</span>
+        <div class="stat"><div class="sl">Total BTC Cost</div><div class="sv" id="aTotalCost">$61.81B</div></div>
+        <div class="stat"><div class="sl">Avg Cost per BTC</div><div class="sv" id="aAvgCost2">$75,537</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="p-label">Supply Absorption</div>
+      <div class="big" id="aAbsorb">--</div>
+      <div class="big-sub">x daily mined supply (450 BTC/day)</div>
+      <div class="prog-wrap" style="margin-top:16px">
+        <div class="prog-label"><span>0x</span><span>1x = 450 BTC/day</span><span id="aAbsorbMax">5x</span></div>
+        <div class="prog-track"><div class="prog-fill og" id="aAbsorbBar" style="width:0%"></div></div>
+      </div>
+      <div class="stats c2" style="margin-top:14px">
+        <div class="stat"><div class="sl">Daily Mined (global)</div><div class="sv">450 BTC</div><div class="ss">post-halving Apr 2024</div></div>
+        <div class="stat"><div class="sl">Strategy's Share</div><div class="sv" id="aStratShare">--</div><div class="ss">of all BTC mined today</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="p-label">3-Model Comparison <span class="badge bl">LIVE STRC VOLUME</span></div>
+      <div class="model-row rank1">
+        <div><div class="model-name">STRC.LIVE</div><div class="model-src">volume above $100 par · 35% capture</div></div>
+        <div style="text-align:right"><div class="model-val" id="am1v">--</div><div class="model-note" id="am1n">--</div></div>
+      </div>
+      <div class="model-row rank2">
+        <div><div class="model-name">BTC FOR CORPS</div><div class="model-src">8-K auto-calibrated · 42% capture</div></div>
+        <div style="text-align:right"><div class="model-val" id="am2v">--</div><div class="model-note" id="am2n">--</div></div>
+      </div>
+      <div class="model-row rank3">
+        <div><div class="model-name">BTC TREASURIES</div><div class="model-src">8-K reconciliation · 38% capture</div></div>
+        <div style="text-align:right"><div class="model-val" id="am3v">--</div><div class="model-note" id="am3n">--</div></div>
+      </div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--txt3);margin-top:10px">All models use live STRC volume. Differences reflect capture rate assumptions. Confirmed Monday via 8-K.</div>
+    </div>
+
+    <div class="panel">
+      <div class="p-label">Milestones</div>
+      <div id="milestonesWrap"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ======================================================= -->
+<!-- SECTION: STRC -->
+<!-- ======================================================= -->
+<div class="section" id="sec-strc">
+  <div class="grid g-3">
+
+    <div class="panel">
+      <div class="p-label">STRC Price <span class="badge" id="strcGateBadge">CHECKING</span></div>
+      <div class="big white" id="strcBig">$99.75</div>
+      <div class="big-sub">Variable Rate Perpetual Preferred · $100 par</div>
+      <div class="stats c2" style="margin-top:14px">
+        <div class="stat"><div class="sl">vs Par ($100)</div><div class="sv" id="strcVsPar">-$0.25</div></div>
+        <div class="stat"><div class="sl">Dividend Rate</div><div class="sv">11.50%</div><div class="ss">May 2026 · unchanged</div></div>
+        <div class="stat"><div class="sl">Daily Volume</div><div class="sv" id="strcVolShares">--</div></div>
+        <div class="stat"><div class="sl">Volume ($)</div><div class="sv" id="strcVolDollar">--</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="p-label">ATM Gate Status</div>
+      <div class="big" id="strcGateBig" style="color:var(--rd)">CLOSED</div>
+      <div class="big-sub" id="strcGateSub">STRC must trade above $100 to issue new shares</div>
+      <div class="stats c2" style="margin-top:14px">
+        <div class="stat"><div class="sl">Capture Rate</div><div class="sv" id="strcCapRate">0%</div><div class="ss">of volume = ATM issuance</div></div>
+        <div class="stat"><div class="sl">Est. Proceeds/hr</div><div class="sv" id="strcProcHr">--</div></div>
+        <div class="stat"><div class="sl">VWAP April</div><div class="sv">$99.76</div><div class="ss">kept div rate at 11.5%</div></div>
+        <div class="stat"><div class="sl">Expected Recovery</div><div class="sv">~May 6-7</div><div class="ss">historical pattern</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="p-label">Dividend Calendar <span class="badge og">STRC HOLDERS</span></div>
+      <div class="div-row">
+        <div><div class="div-name">STRC Monthly Dividend</div><div class="div-sub">11.50% annual · paid monthly in cash</div></div>
+        <div><div class="div-val">$0.9583</div><div class="div-date">per share · May payment</div></div>
+      </div>
+      <div class="div-row" style="border-color:var(--bl)">
+        <div><div class="div-name">Semi-Monthly Vote</div><div class="div-sub">Shareholders voting on bi-monthly schedule</div></div>
+        <div><div class="div-val" style="color:var(--bl)">PENDING</div><div class="div-date">vote in progress</div></div>
+      </div>
+      <div class="stats c2" style="margin-top:14px">
+        <div class="stat"><div class="sl">Next Payment</div><div class="sv" id="divNextDate">~May 15</div></div>
+        <div class="stat"><div class="sl">Annual per Share</div><div class="sv">$11.50</div><div class="ss">at 11.5% on $100 par</div></div>
+        <div class="stat"><div class="sl">Total Div Burden</div><div class="sv">~$1.1B/yr</div><div class="ss">all preferred combined</div></div>
+        <div class="stat"><div class="sl">BTC Covers Divs</div><div class="sv" id="btcCoverDiv">--</div><div class="ss">BTC needed to sell</div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="grid g-2">
+    <div class="panel">
+      <div class="p-label">STRC vs Par — Why It Matters</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--txt2);line-height:1.7">
+        <p style="margin-bottom:8px"><span style="color:var(--gn)">Above $100:</span> Strategy can issue new shares through ATM. Every dollar raised buys Bitcoin. Gate OPEN.</p>
+        <p style="margin-bottom:8px"><span style="color:var(--og)">$99.50–$100:</span> Reduced issuance. Strategy may still sell but at a discount — limits capital raised. Gate REDUCED.</p>
+        <p style="margin-bottom:8px"><span style="color:var(--rd)">Below $99.50:</span> ATM effectively closed. No meaningful new shares issued. Bitcoin purchases pause or rely on MSTR.</p>
+        <p><span style="color:var(--txt)">Ex-dividend effect:</span> STRC mechanically drops below $100 each month on the ex-date (Apr 15), then recovers as dividend is set. Expected above par again ~May 6-7.</p>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="p-label">All Strategy Preferred Securities</div>
+      <div class="cap-item">
+        <div><div class="cap-name">STRC — Stretch</div><div class="cap-sub">Variable rate · $100 par · 11.50% current</div></div>
+        <div><div class="cap-val og-val">$99.75</div><div class="cap-detail">most active · ATM engine</div></div>
+      </div>
+      <div class="cap-item">
+        <div><div class="cap-name">STRK — Strike</div><div class="cap-sub">Fixed rate · $1,000 par · 8% coupon</div></div>
+        <div><div class="cap-val">~$1,010</div><div class="cap-detail">fixed income preferred</div></div>
+      </div>
+      <div class="cap-item">
+        <div><div class="cap-name">STRF — Strife</div><div class="cap-sub">Fixed rate · $1,000 par · 10% coupon</div></div>
+        <div><div class="cap-val">~$1,020</div><div class="cap-detail">higher yield preferred</div></div>
+      </div>
+      <div class="cap-item">
+        <div><div class="cap-name">STRD — Stride</div><div class="cap-sub">Variable rate · $100 par · newest</div></div>
+        <div><div class="cap-val">~$100</div><div class="cap-detail">newest issuance</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======================================================= -->
+<!-- SECTION: INVESTOR -->
+<!-- ======================================================= -->
+<div class="section" id="sec-investor">
+  <div class="grid g-3">
+
+    <div class="panel">
+      <div class="p-label">mNAV Premium <span class="badge bl">KEY METRIC</span></div>
+      <div class="big white" id="iNAV">--</div>
+      <div class="big-sub">MSTR market cap vs BTC holdings NAV</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--txt2);line-height:1.6;margin-top:12px">
+        mNAV = what you pay per $1 of Bitcoin through MSTR.<br>
+        <span style="color:var(--og)">1.0x</span> = fair value. <span style="color:var(--gn)">Below 1.0x</span> = discount. <span style="color:var(--yl)">Above 1.5x</span> = expensive premium.
+      </div>
+      <div class="stats c2" style="margin-top:12px">
+        <div class="stat"><div class="sl">MSTR Mkt Cap</div><div class="sv" id="iMktCap">--</div></div>
+        <div class="stat"><div class="sl">BTC NAV</div><div class="sv" id="iNAVval">--</div></div>
+        <div class="stat"><div class="sl">Premium / Discount</div><div class="sv" id="iNAVdiff">--</div></div>
+        <div class="stat"><div class="sl">Texas Capital Target</div><div class="sv">1.25x mNAV</div><div class="ss">implies $225 MSTR</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="p-label">Analyst Price Targets <span class="badge og">CONSENSUS: STRONG BUY</span></div>
+      <div class="stats c3">
+        <div class="stat"><div class="sl">Low</div><div class="sv rd">$145</div></div>
+        <div class="stat"><div class="sl">Avg Target</div><div class="sv og-val">$335</div></div>
+        <div class="stat"><div class="sl">High</div><div class="sv gn">$705</div></div>
+      </div>
+      <div class="target-bar">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--txt3);margin-bottom:6px">Price vs Targets</div>
+        <div class="target-track" id="targetTrack">
+          <div class="target-range" id="targetRange"></div>
+          <div class="target-current" id="targetCurrent"></div>
+          <div class="target-avg" id="targetAvg"></div>
+        </div>
+        <div class="target-labels"><span>$145</span><span id="tCurrent" style="color:var(--og)">current</span><span>$705</span></div>
+      </div>
+      <div class="stats c2" style="margin-top:10px">
+        <div class="stat"><div class="sl">Upside to Avg</div><div class="sv" id="iUpside">--</div></div>
+        <div class="stat"><div class="sl">52-Week High</div><div class="sv">$457</div><div class="ss">Nov 21, 2024</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="p-label">Capital Structure</div>
+      <div class="cap-item">
+        <div><div class="cap-name">MSTR Common Equity</div><div class="cap-sub">~350M shares outstanding</div></div>
+        <div><div class="cap-val" id="cMstrCap">--</div><div class="cap-detail">market cap</div></div>
+      </div>
+      <div class="cap-item">
+        <div><div class="cap-name">BTC Treasury (NAV)</div><div class="cap-sub">818,334 BTC at live price</div></div>
+        <div><div class="cap-val" id="cBTCNav">--</div><div class="cap-detail">net asset value</div></div>
+      </div>
+      <div class="cap-item">
+        <div><div class="cap-name">ATM Capacity Remaining</div><div class="cap-sub">$42B total program · STRC + MSTR</div></div>
+        <div><div class="cap-val" style="color:var(--gn)">~$35B</div><div class="cap-detail">est. remaining</div></div>
+      </div>
+      <div class="cap-item">
+        <div><div class="cap-name">Annual Div Burden</div><div class="cap-sub">All preferred combined</div></div>
+        <div><div class="cap-val" style="color:var(--rd)">~$1.1B</div><div class="cap-detail">cash outflow/year</div></div>
+      </div>
+      <div class="cap-item">
+        <div><div class="cap-name">Q1 2026 Earnings</div><div class="cap-sub">Scheduled May 5, after market close</div></div>
+        <div><div class="cap-val" style="color:var(--og)" id="earningsCountdown">--</div><div class="cap-detail">EPS est: -$20.29</div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="grid g-1-2">
+    <div class="panel">
+      <div class="p-label">MSTR vs BTC Performance</div>
+      <div class="stats c2">
+        <div class="stat"><div class="sl">MSTR 1 Month</div><div class="sv" style="color:var(--gn)">+33%</div></div>
+        <div class="stat"><div class="sl">BTC 1 Month</div><div class="sv" style="color:var(--gn)">+12%</div></div>
+        <div class="stat"><div class="sl">MSTR 1 Year</div><div class="sv" style="color:var(--rd)">-54%</div></div>
+        <div class="stat"><div class="sl">BTC 1 Year</div><div class="sv" style="color:var(--rd)">-18%</div></div>
+        <div class="stat"><div class="sl">MSTR YTD</div><div class="sv" style="color:var(--gn)">+9%</div></div>
+        <div class="stat"><div class="sl">BTC YTD</div><div class="sv">+2%</div></div>
+      </div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--txt3);margin-top:10px;line-height:1.5">MSTR acts as leveraged BTC. Outperforms BTC in bull markets, underperforms in bear markets. Beta ~2x Bitcoin.</div>
+    </div>
+
+    <div class="panel">
+      <div class="p-label">Key Risks &amp; Considerations <span class="badge rd">FOR INVESTORS</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div class="stat" style="border-left:3px solid var(--rd)">
+          <div class="sl">Bitcoin Price Risk</div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--txt2);line-height:1.5;margin-top:4px">All holdings mark-to-market. Q1 2026: $14.46B unrealized loss when BTC was below cost basis.</div>
+        </div>
+        <div class="stat" style="border-left:3px solid var(--rd)">
+          <div class="sl">Dilution Risk</div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--txt2);line-height:1.5;margin-top:4px">Continuous ATM share issuance dilutes existing shareholders. BTC yield metric adjusts for this.</div>
+        </div>
+        <div class="stat" style="border-left:3px solid var(--og)">
+          <div class="sl">STRC Circularity Debate</div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--txt2);line-height:1.5;margin-top:4px">Critics compare to Jenga — dividends funded by new raises. Benchmark says model is "deliberate and durable."</div>
+        </div>
+        <div class="stat" style="border-left:3px solid var(--og)">
+          <div class="sl">$1.1B Annual Div Burden</div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--txt2);line-height:1.5;margin-top:4px">Must keep raising capital or sell BTC to fund preferred dividends. Sustainable only if ATM stays active.</div>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- WEEK BAR -->
-<div class="wkbar">
-  <div><div class="wkl">Accumulation Week</div><div class="wkr" id="wkRange">--</div></div>
-  <div class="wkdays" id="wkDays"></div>
-  <div class="wkright"><div class="wktl">Week Est. Total</div><div class="wktv" id="wkTot">-- BTC</div></div>
-</div>
-
-<!-- 3-COL GRID -->
-<div class="g3">
-  <div class="card">
-    <div class="ctop"><div><div class="ctt">BTC Acquired Today</div><div class="cts">STRC + MSTR ATM / BTC price</div></div><div class="bdg live" id="estBadge">LIVE</div></div>
-    <div class="ebody">
-      <div class="elbl"><span class="etick"></span>accumulated so far today</div>
-      <div><span class="ebig" id="estNum">0</span><span class="eunit">BTC</span></div>
-      <div class="eusd" id="estUsd">if active all day: -- BTC</div>
-      <div class="erange" id="estRange">session: loading...</div>
-    </div>
-    <div class="warn" id="warnBox">BTC price loading - showing estimate</div>
-    <div class="bkd">
-      <div class="br"><div><div class="brl">STRC net/day</div><div class="brn">9-wk weighted avg</div></div><div class="brv og" id="bvol">$40.4M</div></div>
-      <div class="br"><div><div class="brl">MSTR net/day</div><div class="brn">9-wk weighted avg</div></div><div class="brv og" id="bnet">$25.6M</div></div>
-      <div class="br"><div><div class="brl">Total daily capital</div><div class="brn">STRC + MSTR combined</div></div><div class="brv" id="bmstr">$66.0M/day</div></div>
-      <div class="br" style="background:rgba(247,147,26,.025)"><div><div class="brl" style="color:var(--hi);font-weight:600">Lo / Mid / Hi</div></div><div class="brv og" id="bres">--</div></div>
-    </div>
-  </div>
-  <div class="card">
-    <div class="ctop"><div><div class="ctt">Daily Supply Absorber</div><div class="cts">Strategy vs 450 BTC mined/day</div></div><div class="bdg live" id="absBadge">ACCUMULATING</div></div>
-    <div class="abs-body">
-      <div class="aratio below" id="absRatio">--</div>
-      <div class="albl" id="absLbl">of daily mined supply</div>
-      <div class="meter-track"><div class="meter-fill bel" id="meterFill" style="width:2%"></div></div>
-      <div class="meter-lbl"><span>0%</span><span>100% = 450 BTC</span><span id="meterPct">--%</span></div>
-      <div class="bars">
-        <div class="bcol"><div class="btrack"><div class="bfill mine" id="fillMine" style="height:50%"></div></div><div class="blbl">Mined</div><div class="bv bl">450</div></div>
-        <div class="bcol"><div class="btrack"><div class="bfill strat" id="fillStrat" style="height:2%"></div><div class="tl" id="tline" style="bottom:50%;display:none"></div></div><div class="blbl">Strategy</div><div class="bv og" id="stratVal">--</div></div>
-      </div>
-      <div class="astats">
-        <div class="as"><div class="asl">Mined</div><div class="asv bl">450</div></div>
-        <div class="as"><div class="asl">Today</div><div class="asv og" id="aToday">--</div></div>
-        <div class="as"><div class="asl">Absorbed</div><div class="asv og" id="aPct">--%</div></div>
-        <div class="as"><div class="asl">Gate</div><div class="asv" id="aGate">--</div></div>
-      </div>
-    </div>
-  </div>
-  <div class="card">
-    <div class="ctop"><div><div class="ctt">Weekly Accumulator</div><div class="cts">Mon-Sun running total</div></div><div class="bdg hr">LIVE</div></div>
-    <div class="wbody">
-      <div class="wtot"><div class="wtl">Estimated this week</div><div class="wtvn" id="wkNum">--</div><div class="wtu" id="wkUsd">approx $--</div></div>
-      <div class="drows" id="dayRows"></div>
-    </div>
-  </div>
-</div>
-
-<!-- ORANGE PILL MACHINE -->
-<div class="card" style="margin-top:14px">
-  <div class="ctop">
-    <div><div class="ctt">Orange Pill Machine - Live Accumulation Engine</div><div class="cts">Dollars in - Bitcoin out - 24/7 tracking - <span id="pmSub">loading...</span></div></div>
-    <div style="display:flex;gap:8px"><div class="bdg live" id="pmGateBdg">GATE OPEN</div><div class="bdg ver">LIVE</div></div>
-  </div>
-  <div class="pm-stats">
-    <div class="pms"><div class="lbl">Dollars In Today</div><div class="pmv" style="color:var(--gn)" id="pmDollarsIn">$--</div><div style="font-size:9px;color:var(--txt2);font-family:var(--mono);margin-top:2px">STRC + MSTR est.</div></div>
-    <div class="pms"><div class="lbl">BTC Accumulated</div><div class="pmv" style="color:var(--og)" id="pmBtcOut">--</div><div style="font-size:9px;color:var(--txt2);font-family:var(--mono);margin-top:2px">so far today</div></div>
-    <div class="pms"><div class="lbl">Session Progress</div><div class="pmv" style="color:var(--bl)" id="pmProg">--%</div><div style="font-size:9px;color:var(--txt2);font-family:var(--mono);margin-top:2px">STRC session</div></div>
-  </div>
-  <div style="position:relative">
-    <canvas id="pmCanvas" width="700" height="320" style="width:100%;height:min(320px,55vw);display:block"></canvas>
-    <div style="position:absolute;bottom:16px;left:50%;transform:translateX(-50%);background:rgba(7,9,13,.88);border:1px solid rgba(247,147,26,.35);border-radius:10px;padding:8px 20px;text-align:center;pointer-events:none">
-      <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--txt2);margin-bottom:4px">&#8383; accumulated today</div>
-      <div style="font-size:58px;font-weight:700;font-family:var(--mono);color:var(--og);letter-spacing:-2px;line-height:1" id="pmBig">--</div>
-      <div style="font-size:10px;color:var(--txt);font-family:var(--mono);margin-top:2px" id="pmBigUsd">approx $--</div>
-    </div>
-  </div>
-  <div style="padding:12px 18px 14px;border-top:1px solid var(--line)">
-    <div style="display:flex;justify-content:space-between;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--txt2);font-weight:600;margin-bottom:6px">
-      <span>STRC 4:00 AM</span><span id="pmBarLbl">--</span><span>STRC 8:00 PM</span>
-    </div>
-    <div style="height:8px;background:var(--s2);border-radius:4px;border:1px solid var(--line);overflow:hidden;position:relative">
-      <div id="pmBar" style="height:100%;width:0%;border-radius:4px;background:linear-gradient(90deg,rgba(247,147,26,.6),var(--og));transition:width 1s linear;position:relative;overflow:hidden">
-        <div style="position:absolute;right:0;top:0;bottom:0;width:20px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.4));animation:msw 2s ease-in-out infinite"></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-<!-- GATE STATUS BANNER -->
-<div class="gate-banner" id="gateBanner" style="display:none">
-  <div class="gate-dot"></div>
-  <span id="gateBannerTxt">ATM Gate status loading...</span>
-</div>
-
-<!-- mNAV + 8-K HISTORY -->
-
-
-
-      <div class="bdg hr">8-K</div>
-    </div>
-    <div style="padding:0 0 4px;overflow-x:auto">
-      <table class="hk-table">
+<!-- ======================================================= -->
+<!-- SECTION: 8-K HISTORY -->
+<!-- ======================================================= -->
+<div class="section" id="sec-history">
+  <div class="panel" style="margin:1px">
+    <div class="p-label">SEC 8-K Purchase History <span class="badge gn">CONFIRMED FILINGS</span></div>
+    <div class="tbl-wrap">
+      <table>
         <thead>
           <tr>
             <th>Week</th>
-            <th>BTC Bought</th>
+            <th>BTC Acquired</th>
             <th>Avg Price</th>
-            <th>$ Raised</th>
+            <th>Capital Raised</th>
+            <th>Source</th>
             <th>Total Holdings</th>
+            <th>Cumulative Cost</th>
           </tr>
         </thead>
-        <tbody id="hkBody"></tbody>
+        <tbody id="ekTbody"></tbody>
       </table>
     </div>
   </div>
-
 </div>
 
-<!-- BITCOIN BLACK HOLE -->
-<div class="card sec-wrap" style="margin-top:14px;overflow:hidden">
-  <div class="ctop">
-    <div>
-      <div class="ctt">Bitcoin Black Hole &mdash; Road to 1,000,000 BTC</div>
-      <div class="cts"><span id="bhSubtitle">780,897 BTC absorbed &bull; 219,103 remaining &bull; gravity of accumulation is irreversible</span></div>
-    </div>
-    <div style="display:flex;gap:8px;align-items:center">
-      <button class="share-btn" id="shareBtn">Share Snapshot</button>
-      <div class="bdg ver">LIVE</div>
-    </div>
-  </div>
-  <div style="position:relative">
-    <canvas id="bhCanvas" style="display:block;width:100%;background:#07090d"></canvas>
-    <div id="bhTip" style="position:absolute;top:12px;right:16px;text-align:right;pointer-events:none">
-      <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(120,150,180,0.6);font-family:var(--mono);margin-bottom:4px">BTC absorbed</div>
-      <div style="font-size:36px;font-weight:700;font-family:var(--mono);color:#f7931a;letter-spacing:-1px;line-height:1" id="bhCount">780,897</div>
-      <div style="font-size:10px;color:rgba(120,150,180,0.5);font-family:var(--mono);margin-top:3px" id="bhPct">78.1% of 1,000,000</div>
-    </div>
-  </div>
-  <div style="display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line)">
-    <div style="padding:12px 14px;border-right:1px solid var(--line)">
-      <div style="font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--txt2);margin-bottom:4px">Absorbed</div>
-      <div style="font-size:16px;font-weight:700;font-family:var(--mono);color:#f7931a">780,897</div>
-      <div style="font-size:8.5px;color:var(--txt2);margin-top:2px">BTC confirmed</div>
-    </div>
-    <div style="padding:12px 14px;border-right:1px solid var(--line)">
-      <div style="font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--txt2);margin-bottom:4px">Remaining</div>
-      <div style="font-size:16px;font-weight:700;font-family:var(--mono);color:var(--txt)">233,030</div>
-      <div style="font-size:8.5px;color:var(--txt2);margin-top:2px">BTC to target</div>
-    </div>
-    <div style="padding:12px 14px;border-right:1px solid var(--line)">
-      <div style="font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--txt2);margin-bottom:4px">Days to 1M</div>
-      <div style="font-size:16px;font-weight:700;font-family:var(--mono);color:var(--bl)" id="bhDays">--</div>
-      <div style="font-size:8.5px;color:var(--txt2);margin-top:2px">at current pace</div>
-    </div>
-    <div style="padding:12px 14px">
-      <div style="font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--txt2);margin-bottom:4px">Pull strength</div>
-      <div style="font-size:16px;font-weight:700;font-family:var(--mono);color:#f7931a">78.1%</div>
-      <div style="font-size:8.5px;color:var(--txt2);margin-top:2px">event horizon</div>
-    </div>
+<!-- ======================================================= -->
+<!-- SECTION: NEWS -->
+<!-- ======================================================= -->
+<div class="section" id="sec-news">
+  <div class="panel" style="margin:1px">
+    <div class="p-label">Latest Strategy News <span class="badge gn">LIVE</span></div>
+    <div id="newsFeed"></div>
   </div>
 </div>
-
-<!-- SHARE TOAST -->
-<div class="share-toast" id="shareToast">Copied to clipboard!</div>
 
 <!-- MOBILE BOTTOM NAV -->
-<div class="mob-nav">
-  <div class="mob-item"><div class="mob-lbl">Gate</div><div class="mob-val" id="mobGate">--</div></div>
-  <div class="mob-item"><div class="mob-lbl">BTC Today</div><div class="mob-val og" id="mobBtc">--</div></div>
-  <div class="mob-item"><div class="mob-lbl">F&amp;G</div><div class="mob-val" id="mobFG">--</div></div>
-  <div class="mob-item"><div class="mob-lbl">8-K In</div><div class="mob-val bl" id="mob8k">--</div></div>
-</div>
-</main>
+<nav class="mobile-nav">
+  <div class="mnav-items">
+    <button class="mnav-btn active" data-sec="overview">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Overview
+    </button>
+    <button class="mnav-btn" data-sec="accumulation">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Accum.
+    </button>
+    <button class="mnav-btn" data-sec="strc">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+      STRC
+    </button>
+    <button class="mnav-btn" data-sec="investor">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+      Investor
+    </button>
+    <button class="mnav-btn" data-sec="news">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 0-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg>
+      News
+    </button>
+  </div>
+</nav>
 
 <script>
-// ===================
-// ============================================================
-// STATE
-// ============================================================
-var BTC_P  = 71000, STRC_P = 0, STRC_VOL = 0, DAY_BTC = 0, DAY_IDX = 0;
-var rfNum  = 0, cdSec  = 60, _lastDateET = '';
-var _strcCache = 0, _strcSrc = 'init';
+// ================================================================
+// ORANGE DOTS v3 ? Full Strategy Intelligence Dashboard
+// ================================================================
 
-// Methodology -- from Apr 1-5 2026 8-K (most recent confirmed)
-// STRC raised $227.3M / 5 days = $45.46M net/day
-// MSTR raised $144.0M / 5 days = $28.80M net/day
-var M = {
-  // Recency-weighted avg of confirmed 8-K weeks (Apr 6-12 = 0.40 weight)
-  // Apr 6-12: $143M/day STRC only (100%/0%)  x0.40
-  // Apr 1-5:  $66M/day  STRC+MSTR            x0.25
-  // Mar 17-23: $225M/day                     x0.18
-  // Mar 10-16: $146M/day                     x0.12
-  // Mar 3-9:  $87.5M/day                     x0.05
-  baseDeploy: 136.10,  // $M/day weighted avg
-  strcPct:    0.844,   // STRC share (weighted)
-  mstrPct:    0.156,   // MSTR share (weighted)
-  mine:       450      // BTC mined/day post-halving
-};
-// Computed splits (recalculated if needed)
-// When gate OPEN:  full baseDeploy * strcScale
-// When gate CLOSED: baseDeploy * mstrPct only (MSTR still runs)
+// UPDATE EVERY MONDAY AFTER 8-K
+var HOLDINGS  = 818334;
+var AVG_COST  = 75537;
+var SHARES    = 350000000; // MSTR shares outstanding approx
 
+// Live prices (seeded, updated by fetches)
+var BTC_P  = 78310;
+var MSTR_P = 177.17;
+var STRC_P = 99.75;
+var STRC_VOL = 0; // shares
+var FG_SCORE = 55;
+var FG_YEST  = 52;
+var FG_WEEK  = 48;
 
-// -- CURRENT WEEK HISTORY (Mon=0 ... Sun=6) ---------------------------
-// Past completed days: locked-in estimates (gate state at time of day)
-// null = not yet reached. Update each Monday after 8-K.
-// Week of Apr 7-13, 2026:
-// Mon Apr 7: gate OPEN all day. BTC avg ~$83k. Full day estimate.
+// WEEK_HIST: lock each day after session ends (Mon=0...Sun=6)
 var WEEK_HIST = [
-  6094,  // MON Apr 13 -- LOCKED: $1.16B STRC vol / $74,237 BTC (record day)
-  4618,  // TUE Apr 14 -- LOCKED: ~$900M STRC vol / $76,000 BTC
-  0,     // WED Apr 15 -- LOCKED: ex-div day, STRC $99.04, ~0 ATM issuance
-  null,  // THU Apr 16 -- today (live)
-  null,  // FRI Apr 17 -- future
-  null,  // SAT Apr 18 -- weekend
-  null   // SUN Apr 19 -- weekend
-]
-// Previous week Apr 6-12 CONFIRMED: 13,927 BTC total, $71,902 avg, STRC only ($1B)
-// Note: WEEK_HIST[0] (Monday) = 820 BTC
-// This is our best estimate for Mon Apr 7 when gate was open at ~$80k BTC
-// Update every Monday once 8-K confirms actual purchases
+  null, // MON Apr 28
+  null, // TUE Apr 29
+  null, // WED Apr 30
+  null, // THU May 1
+  null, // FRI May 2 -- today
+  null, // SAT May 3
+  null  // SUN May 4
+];
 
-// ================================================================
-// UPDATE EVERY MONDAY AFTER 8-K CONFIRMS
-// ================================================================
-// STEP 1: Update these 3 numbers from the 8-K filing
-var HOLDINGS    = 780897;   // total BTC held (from 8-K "Aggregate BTC Holdings")
-var AVG_COST    = 75577;    // avg purchase price (from 8-K "Average Purchase Price")
-var MSTR_SHARES = 346800000; // shares outstanding (update if MSTR issues new shares)
+// 8-K HISTORY
+var EK = [
+  {w:'Apr 21-27',btc:3273, avg:77906,raised:254.2, total:818334,src:'8-K Apr 28'},
+  {w:'Apr 14-20',btc:6556, avg:82618,raised:555.8, total:815061,src:'8-K Apr 21'},
+  {w:'Apr 6-12', btc:13927,avg:71902,raised:1001.3,total:808505,src:'8-K Apr 13'},
+  {w:'Apr 1-5',  btc:4871, avg:67718,raised:371.3, total:794578,src:'8-K Apr 7'},
+  {w:'Mar 24-30',btc:0,    avg:0,    raised:0,     total:789707,src:'8-K Mar 31'},
+  {w:'Mar 17-23',btc:22048,avg:71475,raised:1576,  total:789707,src:'8-K Mar 24'},
+  {w:'Mar 10-16',btc:13850,avg:73720,raised:1020,  total:767659,src:'8-K Mar 17'},
+  {w:'Mar 3-9',  btc:7633, avg:80200,raised:612,   total:753809,src:'8-K Mar 10'},
+];
 
-// STEP 2: Add new row to PURCHASE_HIST below
-// STEP 3: Reset WEEK_HIST to all null for new week
-// STEP 4: Update baseDeploy in M constants if deployment rate changed significantly
-// ================================================================ // Q1 2026 approx after ATM issuances
+// NEWS
+var NEWS = [
+  {t:'Strategy keeps STRC dividend at 11.5% for May; VWAP April at $99.76 kept rate unchanged',s:'CoinDesk',a:'1 day ago',u:'https://www.coindesk.com/markets/2026/05/01/strategy-keeps-strc-dividend-at-11-5-as-stock-logs-first-monthly-gain-in-nine'},
+  {t:'MSTR snaps nine-month losing streak with 33% gain in April as Bitcoin rises 12%',s:'CryptoAdventure',a:'1 day ago',u:'https://cryptoadventure.com/mstr-snaps-losing-streak-as-strc-liquidity-tests-saylors-bitcoin-model/'},
+  {t:'Benchmark defends STRC model as "deliberate and durable" ? $3.5B raised in first 3 weeks of April',s:'The Block',a:'2 days ago',u:'https://www.theblock.co/post/399609/not-circular-benchmark-defends-strategys-strc-bitcoin-accumulation-model'},
+  {t:'Texas Capital raises MSTR price target to $225, mNAV assumption lifted to 1.25x ahead of Q1 earnings',s:'Investing.com',a:'2 days ago',u:'https://www.investing.com/news/company-news/why-is-strategy-stock-rallying-today-93CH-4653660'},
+  {t:'STRC dividend vote: Strategy shareholders deciding on semi-monthly payout structure',s:'CoinGape',a:'4 days ago',u:'https://coingape.com/markets/mstr-stock-outlook-as-strc-volumes-spike-ahead-of-q1-earnings/'},
+  {t:'Saylor: Strategy achieved 9.6% BTC Yield YTD 2026 after buying 3,273 BTC at $77,906 avg',s:'CoinDesk',a:'6 days ago',u:'https://www.coindesk.com/markets/2026/04/27/michael-saylor-s-strategy-buys-3-273-bitcoin-as-it-inches-closer-to-its-1-million-target'},
+  {t:'Bernstein: STRC preferred stock is the key engine driving next leg of Bitcoin accumulation',s:'Benzinga',a:'1 week ago',u:'https://www.benzinga.com/markets/prediction-markets/26/04/52073494/strc-fueled-bitcoin-accumulation-could-mean-cryptos-best-days-are-ahead-bernstein'},
+  {t:'Strategy surpasses BlackRock as largest corporate Bitcoin holder with 818,334 BTC worth $62.5B',s:'TradingView',a:'1 week ago',u:'https://www.tradingview.com/symbols/NASDAQ-MSTR/'},
+];
 
-// Fear and Greed
-var FG_SCORE = 50, FG_NEEDLE = Math.PI;
-var FG_DATA  = {mstrP:130,mstrLive:false,mstrChg1:null,mstrChg7:null,mstrRSI:50,btcChg7:null,btcFG:50};
+// ?? HELPERS ???????????????????????????????????????????????????
+function el(id){return document.getElementById(id)}
+function num(n){return n!=null?Math.round(n).toLocaleString():'--'}
+function money(n){if(!n&&n!==0)return'--';var a=Math.abs(n);var s=n<0?'-':'';if(a>=1e9)return s+'$'+(a/1e9).toFixed(2)+'B';if(a>=1e6)return s+'$'+(a/1e6).toFixed(1)+'M';return s+'$'+Math.round(a).toLocaleString()}
+function pct(n,d){d=d||2;return(n>=0?'+':'')+n.toFixed(d)+'%'}
+function getETMin(){var d=new Date(),e=new Date(d.toLocaleString('en-US',{timeZone:'America/New_York'}));return e.getHours()*60+e.getMinutes()}
+function getETDow(){var d=new Date(),e=new Date(d.toLocaleString('en-US',{timeZone:'America/New_York'}));return['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][e.getDay()]}
+function fmtTime(){return new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}
+function todayIdx(){return{Mon:0,Tue:1,Wed:2,Thu:3,Fri:4,Sat:5,Sun:6}[getETDow()]||0}
 
-// Pill machine
-var PM_DOLLARS=[], PM_COINS=[], PM_SPARKS=[];
-var PM_GEARS=[{a:0,s:.018,r:28},{a:1.1,s:-.012,r:20},{a:.5,s:.025,r:14}];
-var PM_LASTD=0, PM_LASTC=0;
-
-// Session particles
-var SC_PARTS=[];
-
-// ============================================================
-// UTILS
-// ============================================================
-function num(v,d){
-  if(v==null||isNaN(v)||!isFinite(v))return'--';
-  return Number(v).toLocaleString('en-US',{minimumFractionDigits:d||0,maximumFractionDigits:d||0});
+function gateStatus(){
+  if(STRC_P<=0)return'CHECKING';
+  if(STRC_P>=100.0)return'OPEN';
+  if(STRC_P>=99.5)return'REDUCED';
+  return'CLOSED';
 }
-function money(v){
-  if(!v||isNaN(v)||!isFinite(v))return'$--';
-  var a=Math.abs(v);
-  if(a>=1e9)return'$'+(a/1e9).toFixed(2)+'B';
-  if(a>=1e6)return'$'+(a/1e6).toFixed(1)+'M';
-  if(a>=1e3)return'$'+Math.round(a/1e3)+'K';
-  return'$'+num(a);
-}
-function el(id){return document.getElementById(id);}
-function set(id,v){var e=el(id);if(e)e.textContent=v;}
 
-// ============================================================
-// MODAL -- safe event listeners only, no inline JS
-// ============================================================
-document.addEventListener('DOMContentLoaded',function(){
-  var mc1=el('modalClose'), mc2=el('modalClose2'), modal=el('methModal');
-  if(mc1)mc1.addEventListener('click',function(){modal.classList.remove('open');});
-  if(mc2)mc2.addEventListener('click',function(){modal.classList.remove('open');});
-  if(modal)modal.addEventListener('click',function(e){if(e.target===modal)modal.classList.remove('open');});
+function strcCapture(){
+  var gs=gateStatus();
+  if(gs==='OPEN')return 0.40;
+  if(gs==='REDUCED')return Math.max(0,(STRC_P-99.0)*0.10);
+  return 0;
+}
+
+function calcBTC(capRate){
+  var p=BTC_P||77000;
+  var cap=capRate!=null?capRate:strcCapture();
+  if(STRC_VOL>100000&&cap>0){
+    var dv=STRC_VOL*STRC_P*1.23;
+    return Math.round(dv*cap*0.975/p);
+  }
+  return Math.round(143e6/p);
+}
+
+// ?? NAVIGATION ????????????????????????????????????????????????
+function switchSection(id){
+  document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active')});
+  document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('active')});
+  document.querySelectorAll('.mnav-btn').forEach(function(t){t.classList.remove('active')});
+  var sec=el('sec-'+id);if(sec)sec.classList.add('active');
+  document.querySelectorAll('[data-sec="'+id+'"]').forEach(function(t){t.classList.add('active')});
+}
+
+document.querySelectorAll('[data-sec]').forEach(function(btn){
+  btn.addEventListener('click',function(){switchSection(this.dataset.sec)});
 });
 
-// ============================================================
-// CLOCK
-// ============================================================
-setInterval(function(){
-  var e=el('clk');
-  if(e)e.textContent=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'America/New_York'});
-},1000);
-setInterval(function(){
-  cdSec=Math.max(0,cdSec-1);
-  renderGateBanner();var e=el('cdt');if(e)e.textContent=cdSec;
-},1000);
-
-// ============================================================
-// SESSION TIMING -- minute-based, no string parsing
-// ============================================================
-function getETMinutes(){
-  var parts=new Intl.DateTimeFormat('en-US',{
-    timeZone:'America/New_York',hour:'2-digit',minute:'2-digit',hour12:false
-  }).formatToParts(new Date());
-  var hh=0,mm=0;
-  parts.forEach(function(p){
-    if(p.type==='hour')  hh=parseInt(p.value,10)||0;
-    if(p.type==='minute')mm=parseInt(p.value,10)||0;
-  });
-  if(hh>=24)hh=0;
-  return hh*60+mm;
-}
-function getETDow(){
-  return new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',weekday:'short'}).format(new Date());
-}
-
-function isGateOpen(){
-  // Gate: above $100 = fully open, $99-100 = reduced, below $99 = minimal
-  return STRC_P >= 99.5;
-}
-function gateStatus(){
-  if(STRC_P <= 0) return 'CHECKING';
-  if(STRC_P >= 100.0) return 'OPEN';
-  if(STRC_P >= 99.5)  return 'REDUCED';
-  return 'CLOSED';
-}
-
-
-function getSession(){
-  var min = getETMinutes();
-  var dow = getETDow();
-  var p   = BTC_P > 0 ? BTC_P : 76000;
-
-  // STRC runs 24/7 - no time gate for estimation
-  // MSTR runs weekdays 9:30am-4pm ET only
-  var wkday    = (dow !== 'Sat' && dow !== 'Sun');
-  var mstrOpen = wkday && min >= 570 && min < 960; // 9:30am-4pm ET
-
-  // Session label for display
-  var S_OPEN=0, S_CLOSE=1440; // STRC: full 24h
-  var M_OPEN=570, M_CLOSE=960; // MSTR: market hours only
-
-  // Gate open/closed only affects DISPLAY banner - not the BTC estimate
-  // STRC ATM issues regardless of price (price affects dividend rate, not issuance)
-  var ao = STRC_P >= 99.5; // true = above par, gate open for display
-
-  // BTC estimate methodology:
-  // PRIMARY: use live STRC volume (most accurate)
-  // volume * 40% = new ATM issuance, * 97.5% = after 2.5% commission
-  var sNet, mNet;
-
-  // Time fractions
-  var strcFrac = Math.min(min / 1440, 1); // 0-1 through 24h
-  var mstrFrac = !wkday ? 0 :
-                 min < M_OPEN  ? 0 :
-                 min >= M_CLOSE ? 1 :
-                 (min - M_OPEN) / (M_CLOSE - M_OPEN);
-
-  // Below par: ATM issuance drops sharply - only volume ABOVE $100 triggers issuance
-  // When STRC < $100, effective capture rate near zero
-  var abovePar = STRC_P >= 100.00;
-  var effectiveCapture = abovePar ? 0.40 : Math.max(0, (STRC_P - 99.0) * 0.10);
-  // e.g. at $99.50 = 5% capture, at $99.00 = 0% capture
-
-  if(STRC_VOL > 500000 && strcFrac > 0.01){
-    // Volume-based: soFar = actual BTC from volume so far today
-    var strcDollarsSoFar = STRC_VOL * effectiveCapture * 0.975;
-    var soFarStrc = strcDollarsSoFar / 1e6; // $M already deployed
-    mNet = STRC_VOL > 5000000 ? 0 : M.baseDeploy * M.mstrPct;
-    var soFarMstr = mNet * mstrFrac;
-    sNet = soFarStrc; // for display labels
-
-    // fullDay: extrapolate STRC pace to end of day
-    var strcPace  = soFarStrc / strcFrac; // projected full-day $M at current pace
-    var fullDayStrc = strcPace / p * 1e6;
-    var fullDayMstr = mNet / p * 1e6;
-    fullDay = Math.round(fullDayStrc + fullDayMstr);
-
-    // soFar = what's actually been acquired today
-    soFar = Math.round((soFarStrc + soFarMstr) * 1e6 / p);
-  } else {
-    // Fallback to weighted 8-K average
-    sNet = M.baseDeploy * M.strcPct;
-    mNet = M.baseDeploy * M.mstrPct;
-    fullDay = Math.round((sNet + mNet) * 1e6 / p);
-    soFar   = Math.round((sNet * strcFrac + mNet * mstrFrac) * 1e6 / p);
-  }
-
-  var totalFrac = strcFrac * 0.8 + mstrFrac * 0.2;
-
-  // Session label
-  var type='', label='';
-  if(!wkday){ type='weekend'; label='Weekend - STRC active 24/7'; }
-  else if(min < M_OPEN){ type='premarket'; label='Pre-market - STRC active, MSTR opens 9:30 AM ET'; }
-  else if(min < M_CLOSE){ type='open'; label='Market open - STRC + MSTR active'; }
-  else { type='afterhours'; label='After hours - STRC extended'; }
-
-  return {
-    min:min, dow:dow, wkday:wkday, ao:ao,
-    gateWasOpen: STRC_P >= 99.5,
-    sNet:sNet, mNet:mNet,
-    soFar:soFar, fullDay:fullDay,
-    strcFrac:strcFrac, mstrFrac:mstrFrac, totalFrac:totalFrac,
-    type:type, label:label
+// ?? RENDER: GATE BANNER ???????????????????????????????????????
+function renderGate(){
+  var gs=gateStatus();
+  var gb=el('gateBanner');var gt=el('gateTxt');
+  if(!gb)return;
+  gb.className='gate-banner '+(gs==='OPEN'?'open':gs==='REDUCED'?'reduced':'closed');
+  var msgs={
+    OPEN:'ATM GATE OPEN -- STRC $'+STRC_P.toFixed(2)+' above $100 par -- Strategy is actively accumulating Bitcoin',
+    REDUCED:'ATM GATE REDUCED -- STRC $'+STRC_P.toFixed(2)+' below $100 par (ex-dividend effect) -- Limited issuance',
+    CLOSED:'ATM GATE CLOSED -- STRC $'+STRC_P.toFixed(2)+' below $99.50 -- Bitcoin accumulation paused via STRC',
+    CHECKING:'STRC ATM STATUS LOADING...'
   };
-}
-
-
-function checkReset(){
-  var d=new Date().toLocaleDateString('en-US',{timeZone:'America/New_York'});
-  if(_lastDateET&&_lastDateET!==d){
-    DAY_BTC=0;
-    set('estNum','0');set('pmBig','0');set('aToday','0');set('aPct','0%');
-    var mf=el('meterFill');if(mf)mf.style.width='2%';
-    var fs=el('fillStrat');if(fs)fs.style.height='2%';
-      }
-  _lastDateET=d;
-}
-setInterval(checkReset,15000);
-
-// ============================================================
-// RENDER WEEK BAR
-// ============================================================
-function renderWeekBar(){
-  var etDow=getETDow();
-  var dowMap={Mon:0,Tue:1,Wed:2,Thu:3,Fri:4,Sat:5,Sun:6};
-  DAY_IDX=dowMap[etDow]!==undefined?dowMap[etDow]:0;
-  var now=new Date();
-  // Use ET-aware date for week range
-  var etNow=new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'}));
-  var mon=new Date(etNow);mon.setDate(etNow.getDate()-DAY_IDX);mon.setHours(0,0,0,0);
-  var sun=new Date(mon);sun.setDate(mon.getDate()+6);
-  var f=function(x){return x.toLocaleDateString('en-US',{month:'short',day:'numeric'});};
-  set('wkRange',f(mon)+' - '+f(sun));
-  var labels=['MON','TUE','WED','THU','FRI','SAT','SUN'];
-  var row=el('wkDays');if(!row)return;
-  row.innerHTML='';
-  for(var i=0;i<7;i++){
-    var d=document.createElement('div');
-    d.className='wd '+(i<DAY_IDX?'done':i===DAY_IDX?'now':'fut');
-    d.textContent=labels[i];
-    row.appendChild(d);
+  if(gt)gt.textContent=msgs[gs]||msgs.CHECKING;
+  // Badge
+  var sb=el('strcGateBadge');
+  if(sb){sb.textContent=gs;sb.className='badge '+(gs==='OPEN'?'gn':gs==='REDUCED'?'og':'rd');}
+  // Big gate display
+  var sgb=el('strcGateBig');
+  if(sgb){sgb.textContent=gs;sgb.style.color=gs==='OPEN'?'var(--gn)':gs==='REDUCED'?'var(--og)':'var(--rd)';}
+  var sgs=el('strcGateSub');
+  if(sgs){
+    var subs={OPEN:'ATM active -- new shares issued, proceeds buy Bitcoin',REDUCED:'Limited issuance -- below par reduces ATM activity',CLOSED:'No new ATM issuance -- STRC must recover above $100',CHECKING:'Fetching STRC price...'};
+    sgs.textContent=subs[gs]||subs.CHECKING;
   }
+  // Capture rate
+  var cr=el('strcCapRate');
+  if(cr){var c=strcCapture();cr.textContent=Math.round(c*100)+'%';cr.style.color=c>0?'var(--gn)':'var(--rd)';}
 }
 
-// ============================================================
-// RENDER ESTIMATE CARD
-// ============================================================
-function renderEst(sess){
-  DAY_BTC=sess.fullDay;
-  animN('estNum',sess.soFar);
-  set('estUsd','if active all day: '+num(sess.fullDay)+' BTC approx '+money(sess.fullDay*(BTC_P||76000)));
-  set('estRange','session: '+sess.label);
-  set('bvol',sess.ao?'$'+(sess.sNet).toFixed(1)+'M/day':'$0 (gate closed)');
-  set('bnet','$'+sess.mNet.toFixed(1)+'M/day net');
-  set('bmstr','$'+(sess.sNet+sess.mNet).toFixed(1)+'M/day total');
-  set('bres',num(Math.round(sess.fullDay*.8))+'/'+num(sess.fullDay)+'/'+num(Math.round(sess.fullDay*1.2)));
-  var eb=el('estBadge');
-  if(eb){eb.textContent=(sess.ao&&sess.wkday)?'LIVE':'CLOSED';eb.className='bdg '+((sess.ao&&sess.wkday)?'live':'cl');}
+// ?? RENDER: PRICE STRIP ???????????????????????????????????????
+function renderStrip(){
+  var rv=HOLDINGS*BTC_P;
+  var btcEl=el('sBTC');if(btcEl)btcEl.textContent='$'+Math.round(BTC_P).toLocaleString();
+  var mEl=el('sMSTR');if(mEl)mEl.textContent='$'+MSTR_P.toFixed(2);
+  var sEl=el('sSTRC');if(sEl){sEl.textContent='$'+STRC_P.toFixed(2);var gs=gateStatus();sEl.style.color=gs==='OPEN'?'var(--gn)':gs==='REDUCED'?'var(--og)':'var(--rd)';}
+  var rEl=el('sRES');if(rEl)rEl.textContent=money(rv);
+  var rcEl=el('sRESc');if(rcEl)rcEl.textContent=num(HOLDINGS)+' BTC';
+  el('hdrTime').textContent=fmtTime();
 }
 
-// ============================================================
-// RENDER ABSORBER
-// ============================================================
-function renderAbs(soFar,ao){
-  var ratio=soFar/M.mine, pct=Math.round(ratio*100);
-  var r=el('absRatio');
-  if(r){r.textContent=ratio.toFixed(2)+'x';r.className='aratio '+(ratio>=1?'absorbed':'below');}
-  set('absLbl',ratio>=1?'fully absorbing daily supply':'of daily supply ('+pct+'%)');
-  var ab=el('absBadge');if(ab){ab.textContent=ratio>=1?'ABSORBING':'ACCUMULATING';ab.className='bdg '+(ratio>=1?'ver':'live');}
-  var mw=Math.min(ratio*50,100);
-  var mf=el('meterFill');if(mf){mf.style.width=Math.max(mw,2)+'%';mf.className='meter-fill '+(ratio>=1?'abs':'bel');}
-  set('meterPct',pct+'%');
-  var maxV=Math.max(M.mine,soFar,1);
-  var fm=el('fillMine');if(fm)fm.style.height=(M.mine/maxV*100)+'%';
-  var fs=el('fillStrat');if(fs){fs.style.height=Math.max(soFar/maxV*100,2)+'%';fs.className='bfill strat'+(ratio>=1?' ab':'');}
-  var tl=el('tline');if(tl){tl.style.display=soFar>20?'block':'none';tl.style.bottom=(M.mine/maxV*100)+'%';}
-  var sv=el('stratVal');if(sv){sv.textContent=num(soFar);sv.className='bv '+(ratio>=1?'gn':'og');}
-  set('aToday',num(soFar));
-  var ap=el('aPct');if(ap){ap.textContent=pct+'%';ap.className='asv '+(ratio>=1?'gn':'og');}
-  var ag=el('aGate');if(ag){ag.textContent=ao?'OPEN':'CLOSED';ag.className='asv '+(ao?'gn':'rd');}
-  document.body.classList.toggle('gate-open',ao);
-}
-
-// ============================================================
-// RENDER WEEKLY -- NO innerHTML with closing tags
-// ============================================================
-function renderWeekly(sess){
-  var fullDay=sess.fullDay||0;
-  var _p=BTC_P>0?BTC_P:76000;
-  var DAYS=['MON','TUE','WED','THU','FRI','SAT','SUN'], di=DAY_IDX;
-  var wknd=Math.round(M.baseDeploy*M.mstrPct*1e6/_p);
-  var days=[], tot=0;
-  for(var i=0;i<7;i++){
-    var isWE=(i===5||i===6);
-    // Past days: use WEEK_HIST if available -- never recalculate with current gate
-    // This prevents gate-closed days from changing history
-    if(i<di){
-      var hist=WEEK_HIST[i];
-      var btcVal=hist!=null?hist:(isWE?wknd:fullDay);
-      days.push({btc:btcVal,soFar:null,s:'done'});
-      tot+=btcVal;
-    } else if(i===di){
-      // Today: bar = fullDay projection, label = soFar live
-      days.push({btc:fullDay,soFar:sess.soFar,s:'now'});
-      tot+=sess.soFar;
-    } else {
-      // Future: project using current gate state
-      var futureFull=isWE?wknd:fullDay;
-      days.push({btc:futureFull,soFar:null,s:'fut'});
-    }
-  }
-  var maxB=1;
-  for(var i=0;i<days.length;i++)if(days[i].btc>maxB)maxB=days[i].btc;
-  var rows=el('dayRows');if(!rows)return;
-  rows.innerHTML='';
-  for(var i=0;i<days.length;i++){
-    var d=days[i];
-    var row=document.createElement('div');
-    row.className='dr'+(i===di?' td':'');
-
-    var dayLbl=document.createElement('div');
-    dayLbl.className='drd'+(i===di?' now':'');
-    dayLbl.textContent=DAYS[i];
-
-    var barWrap=document.createElement('div');
-    barWrap.className='drbw';
-    var barFill=document.createElement('div');
-    var w=d.btc?Math.max(d.btc/maxB*100,2):0;
-    barFill.className='drbf '+d.s;
-    barFill.style.width=w+'%';
-    barWrap.appendChild(barFill);
-
-    var btcDiv=document.createElement('div');
-    btcDiv.className='drbtc '+d.s;
-    // Today: show "X so far" with est underneath
-    // Other days: show the number normally
-    if(d.s==='now'&&d.soFar!=null){
-      btcDiv.textContent=num(d.soFar)+' BTC';
-      btcDiv.title='Projected full day: '+num(d.btc)+' BTC';
-    } else {
-      btcDiv.textContent=(d.s==='fut'?'~':'')+num(d.btc)+' BTC';
-    }
-
-    var stDiv=document.createElement('div');
-    stDiv.className='drst '+d.s;
-    if(d.s==='now'&&d.soFar!=null){
-      stDiv.textContent='LIVE';
-      stDiv.title='Est full day: '+num(d.btc)+' BTC';
-    } else {
-      stDiv.textContent=d.s==='done'?'DONE':d.s==='now'?'LIVE':'--';
-    }
-
-    row.appendChild(dayLbl);
-    row.appendChild(barWrap);
-    row.appendChild(btcDiv);
-    row.appendChild(stDiv);
-    rows.appendChild(row);
-    // For today: add a sub-row showing the full day projection
-    if(d.s==='now'&&d.soFar!=null&&d.btc>d.soFar){
-      var sub=document.createElement('div');
-      sub.style.cssText='display:flex;padding:2px 13px 5px 45px;gap:8px;align-items:center;';
-      var subBar=document.createElement('div');
-      subBar.style.cssText='flex:1;height:2px;background:rgba(247,147,26,.15);border-radius:2px;position:relative;';
-      var subFill=document.createElement('div');
-      subFill.style.cssText='position:absolute;left:0;top:0;bottom:0;border-radius:2px;background:rgba(247,147,26,.35);width:'+Math.round(d.soFar/d.btc*100)+'%;';
-      subBar.appendChild(subFill);
-      var subTxt=document.createElement('div');
-      subTxt.style.cssText='font-size:8.5px;font-family:var(--mono);color:var(--txt2);white-space:nowrap;min-width:130px;text-align:right;';
-      subTxt.textContent='proj. full day: ~'+num(d.btc)+' BTC';
-      sub.appendChild(subBar);
-      sub.appendChild(subTxt);
-      rows.appendChild(sub);
-    }
-  }
-  set('wkNum',num(tot));
-  set('wkUsd','approx '+money(tot*_p)+' so far');
-  set('wkTot',num(tot)+' BTC');
-}
-
-// ============================================================
-// RENDER PILL
-// ============================================================
-function renderPill(sess){
-  var soFar=sess.soFar;
-  var dollarsIn=(sess.sNet*sess.strcFrac+sess.mNet*sess.mstrFrac)*1e6;
-  var ao=sess.ao; // already time-aware from getSession
-  set('pmDollarsIn',money(dollarsIn));
-  set('pmBtcOut',num(soFar));
-  set('pmProg',Math.round(sess.totalFrac*100)+'%');
-  set('pmBig',num(soFar));
-  set('pmBigUsd','approx '+money(soFar*(BTC_P||76000)));
-  var pb=el('pmBar');if(pb)pb.style.width=Math.round(sess.totalFrac*100)+'%';
-  set('pmBarLbl',sess.label);
-  set('pmSub',money(dollarsIn)+' deployed - '+num(soFar)+' BTC - '+sess.label);
-  var gb=el('pmGateBdg');if(gb){gb.textContent=ao?'GATE OPEN':'GATE CLOSED';gb.className='bdg '+(ao?'live':'cl');}
-}
-
-// ============================================================
-// RENDER KEY STATS
-// ============================================================
-function renderKeyStats(){
-  var p=BTC_P||76000;
-  var reserve=HOLDINGS*p;
-  // Update all static holdings displays dynamically
-  var hFmt=num(HOLDINGS);
-  var hs=el('holdingsStrip');if(hs)hs.textContent=hFmt;
-  var hr=el('holdingsReserve');if(hr)hr.textContent=hFmt;
-  var bc=el('bhCount');if(bc)bc.textContent=hFmt;
-  var hc=el('holdingsCost');if(hc)hc.textContent='avg $'+num(AVG_COST)+' \u2022 $'+money(AVG_COST*HOLDINGS)+' cost';
+// ?? RENDER: OVERVIEW HOLDINGS ?????????????????????????????????
+function renderHoldings(){
+  var rv=HOLDINGS*BTC_P;
+  var pnl=(BTC_P-AVG_COST)*HOLDINGS;
+  var pnlPct=(BTC_P-AVG_COST)/AVG_COST*100;
+  var hn=el('oHoldings');if(hn)hn.textContent=num(HOLDINGS);
+  var ac=el('oAvgCost');if(ac)ac.textContent='$'+AVG_COST.toLocaleString();
+  var pl=el('oPL');
+  if(pl){pl.textContent=money(Math.abs(pnl))+(pnlPct>=0?' gain':' loss');pl.style.color=pnlPct>=0?'var(--gn)':'var(--rd)';}
+  var res=el('oRes');if(res)res.textContent=money(rv);
+  var sup=el('oSupply');if(sup)sup.textContent=(HOLDINGS/21000000*100).toFixed(3)+'%';
+  // Road to 1M
+  var pct1m=(HOLDINGS/1000000*100);
   var rem=1000000-HOLDINGS;
-  var bhs=el('bhSubtitle');if(bhs)bhs.textContent=hFmt+' BTC absorbed \u2022 '+num(rem)+' remaining \u2022 gravity of accumulation is irreversible';
-  // Update black hole stats
-  var bha=el('bhAbsorbed');if(bha)bha.textContent=hFmt;
-  var bhr=el('bhRemaining');if(bhr)bhr.textContent=num(rem);
-  var bhp=el('bhPct');if(bhp)bhp.textContent=(HOLDINGS/1000000*100).toFixed(1)+'% of 1,000,000';
-  var pnl=(p-AVG_COST)*HOLDINGS;
-  var pnlPct=(p-AVG_COST)/AVG_COST*100;
-  set('ksReserve',money(reserve));
-  var pe=el('ksPnl');
-  if(pe){
-    pe.textContent=(pnl>=0?'+':'')+money(Math.abs(pnl))+' ('+Math.abs(pnlPct).toFixed(1)+'%)';
-    pe.style.color=pnl>=0?'var(--gn)':'var(--rd)';
-  }
-  // 8-K countdown using minutes
-  var min=getETMinutes(), dow=getETDow();
-  var dowMap={'Mon':1,'Tue':2,'Wed':3,'Thu':4,'Fri':5,'Sat':6,'Sun':0};
-  var dowN=dowMap[dow]||0;
-  var minInWeek=dowN*1440+min;
-  var target=1*1440+8*60; // Monday 8am
-  var minLeft=target-minInWeek;
-  if(minLeft<=0)minLeft+=7*1440;
-  var dLeft=Math.floor(minLeft/1440);
-  var hLeft=Math.floor((minLeft%1440)/60);
-  set('ks8k',dLeft+'d '+hLeft+'h');
-  // Price bar
-  var maxP=AVG_COST*2;
-  var barPct=Math.min((p/maxP)*100,100);
-  var pb=el('ksPriceBar');
-  if(pb){
-    pb.style.width=barPct+'%';
-    pb.style.background=p>=AVG_COST?'linear-gradient(90deg,var(--gn),rgba(0,208,132,.6))':'linear-gradient(90deg,var(--rd),rgba(255,64,96,.6))';
-  }
-  set('ksPriceBarMax','$'+Math.round(maxP/1000)+'k');
-  var pve=el('ksPriceVsAvg');
-  if(pve){
-    pve.textContent='$'+num(Math.round(p))+' ('+(pnlPct>=0?'+':'')+pnlPct.toFixed(1)+'%)';
-    pve.style.color=p>=AVG_COST?'var(--gn)':'var(--rd)';
+  var h1p=el('o1mPct');if(h1p)h1p.textContent=pct1m.toFixed(1)+'%';
+  var h1s=el('o1mSub');if(h1s)h1s.textContent=num(HOLDINGS)+' of 1,000,000 BTC';
+  var h1b=el('o1mBar');if(h1b)h1b.style.width=pct1m+'%';
+  var h1r=el('o1mRem');if(h1r)h1r.textContent=num(rem)+' remaining';
+  // Weekly avg from last 4 8-Ks
+  var recentBTC=EK.slice(0,4).reduce(function(a,r){return a+(r.btc||0)},0)/4;
+  var wAvg=el('oWeeklyAvg');if(wAvg)wAvg.textContent='~'+num(Math.round(recentBTC))+' BTC';
+  // Projected 1M date
+  if(recentBTC>0){
+    var weeksLeft=rem/recentBTC;
+    var projDate=new Date();projDate.setDate(projDate.getDate()+weeksLeft*7);
+    var proj=el('o1mDate');if(proj)proj.textContent=projDate.toLocaleDateString('en-US',{month:'short',year:'numeric'});
   }
 }
 
-// ============================================================
-// ANIMATE NUMBER
-// ============================================================
-function animN(id,target){
-  var e=el(id);if(!e)return;
-  var from=parseInt((e.textContent||'0').replace(/,/g,''))||0;
-  if(from===target){e.textContent=num(target);return;}
-  var diff=target-from, t0=null;
-  function step(ts){
-    if(!t0)t0=ts;
-    var prog=Math.min((ts-t0)/800,1), ease=1-Math.pow(1-prog,3);
-    e.textContent=num(Math.round(from+diff*ease));
-    if(prog<1)requestAnimationFrame(step);
-  }
-  requestAnimationFrame(step);
+// ?? RENDER: MODELS ????????????????????????????????????????????
+function renderModels(){
+  var abovePar=STRC_P>=100;
+  var vol=STRC_VOL;
+
+  // STRC.live: only volume strictly above $100
+  var m1=abovePar&&vol>100000?Math.round(vol*STRC_P*0.35*0.975/BTC_P):Math.round(143e6/BTC_P);
+  // BTCForCorps: 8-K calibrated 42%
+  var m2=vol>100000?Math.round(vol*STRC_P*1.23*0.42*0.975/BTC_P):Math.round(143e6/BTC_P);
+  // BTCTreasuries: 38%
+  var m3=vol>100000?Math.round(vol*STRC_P*1.23*0.38*0.975/BTC_P):Math.round(143e6/BTC_P);
+
+  var note1=vol>100000?(abovePar?'vol above $100 par':'STRC below par - minimal'):'fallback $143M/day';
+  var note2=vol>100000?'8-K calibrated 42% capture':'fallback $143M/day';
+  var note3=vol>100000?'38% capture ? 8-K reconciled':'fallback $143M/day';
+
+  // Overview models
+  ['m1v','am1v'].forEach(function(id){var e=el(id);if(e)e.textContent=num(m1)+' BTC';});
+  ['m2v','am2v'].forEach(function(id){var e=el(id);if(e)e.textContent=num(m2)+' BTC';});
+  ['m3v','am3v'].forEach(function(id){var e=el(id);if(e)e.textContent=num(m3)+' BTC';});
+  ['m1n','am1n'].forEach(function(id){var e=el(id);if(e)e.textContent=note1;});
+  ['m2n','am2n'].forEach(function(id){var e=el(id);if(e)e.textContent=note2;});
+  ['m3n','am3n'].forEach(function(id){var e=el(id);if(e)e.textContent=note3;});
 }
 
-// ============================================================
-// APPLY PRICES
-// ============================================================
-function applyBTC(p,ch,src){
-  if(!p||p<=0)return;
-  var prev=BTC_P; BTC_P=p;
-  var e=el('btcVal');
-  if(e){
-    e.textContent='$'+num(Math.round(p));
-    // Flash animation only on real price changes (not seed)
-    if(src!=='seed'&&prev>0&&Math.abs(p-prev)>10){
-      e.className='val '+(p>prev?'up':'dn');
-      setTimeout(function(){e.className='val';},900);
-    }
-  }
-  var sb=el('btcSub');
-  if(sb&&ch!=null){
-    sb.innerHTML='';
-    var sp=document.createElement('span');
-    sp.className=ch>=0?'up':'dn';
-    sp.textContent=(ch>=0?'+':'')+Number(ch).toFixed(2)+'%';
-    sb.appendChild(sp);
-    sb.appendChild(document.createTextNode(' 24h'));
-  }
-  set('src',src);
+// ?? RENDER: WEEK BAR ??????????????????????????????????????????
+function renderWeekBar(){
+  var wb=el('weekBar');if(!wb)return;
+  var days=['MON','TUE','WED','THU','FRI','SAT','SUN'];
+  var todayI=todayIdx();
+  var fallback=Math.round(143e6/BTC_P);
+  var ourBTC=calcBTC();
+
+  var vals=WEEK_HIST.map(function(v,i){
+    if(v!==null)return v;
+    if(i<todayI)return fallback;
+    if(i===todayI)return ourBTC;
+    return fallback;
+  });
+
+  var maxBTC=Math.max.apply(null,vals.map(function(v){return v||0}))||1;
+  var total=vals.reduce(function(a,v){return a+(v||0)},0);
+  var html='';
+
+  vals.forEach(function(v,i){
+    var w=(v||0)/maxBTC*100;
+    var st=i<todayI?'done':i===todayI?'live':'fut';
+    var fc=v===0?'zero':i===todayI?'live':i<todayI?'og':'fut';
+    var lbl=i<todayI?'DONE':i===todayI?'LIVE':'--';
+    var stcls='st-'+(i<todayI?'done':i===todayI?'live':'fut');
+    html+='<div class="week-row">';
+    html+='<div class="day-lbl">'+days[i]+'</div>';
+    html+='<div class="bar-track"><div class="bar-fill '+fc+'" style="width:'+w+'%"></div></div>';
+    html+='<div class="day-btc" style="color:'+(i===todayI?'var(--og)':i<todayI?'var(--txt)':'var(--txt3)')+'">'+num(v!==null?v:i===todayI?ourBTC:fallback)+' BTC</div>';
+    html+='<div class="day-st '+stcls+'">'+lbl+'</div>';
+    html+='</div>';
+  });
+  wb.innerHTML=html;
+
+  // Week range label
+  var dow=getETDow();
+  var monDate=new Date();var di=todayI;
+  monDate.setDate(monDate.getDate()-di);
+  var sunDate=new Date(monDate);sunDate.setDate(monDate.getDate()+6);
+  var fmt=function(d){return(d.getMonth()+1)+'/'+d.getDate()};
+  var wr=el('oWeekRange');if(wr)wr.textContent=fmt(monDate)+' - '+fmt(sunDate);
+  var wt=el('oWeekTotal');if(wt)wt.textContent=num(total)+' BTC est.';
 }
 
-function applySTRC(p,live,vol){
-  if(!p||p<=0)return;
-  STRC_P=p;
-  if(vol&&vol>0)STRC_VOL=vol;
-  var ao=isGateOpen();
-  var sv=el('strcVal');if(sv){sv.textContent='$'+p.toFixed(2);sv.style.color=ao?'var(--gn)':'var(--rd)';}
-  var ss=el('strcSub');if(ss){ss.textContent=(ao?'above par':'below par')+(live?' - '+_strcSrc:'');ss.style.color=ao?'var(--gn)':'var(--rd)';}
-  var sb=el('strcBadge');if(sb){sb.textContent=ao?'ATM GATE OPEN':'ATM GATE CLOSED';sb.className='atmbadge '+(ao?'on':'off');}
-  var ap=el('atmPill');if(ap){ap.textContent=ao?'ATM OPEN':'ATM CLOSED';ap.className='pill '+(ao?'on':'off');}
+// ?? RENDER: ACCUMULATION TAB ??????????????????????????????????
+function renderAccum(){
+  // BTC Yield
+  var ay=el('aYield');if(ay)ay.textContent='9.6%';
+  // BTC per share
+  var bps=el('aBTCperShare');
+  if(bps)bps.textContent=(HOLDINGS/SHARES*1000).toFixed(2)+' BTC';
+  var tc=el('aTotalCost');if(tc)tc.textContent=money(HOLDINGS*AVG_COST);
+  var ac2=el('aAvgCost2');if(ac2)ac2.textContent='$'+AVG_COST.toLocaleString();
+  // Supply absorption
+  var todayBTC=calcBTC();
+  var absorb=todayBTC/450;
+  var aab=el('aAbsorb');if(aab)aab.textContent=absorb.toFixed(2)+'x';
+  var abb=el('aAbsorbBar');if(abb)abb.style.width=Math.min(100,absorb/5*100)+'%';
+  var asm=el('aAbsorbMax');if(asm)asm.textContent='5x+';
+  var ass=el('aStratShare');if(ass)ass.textContent=Math.round(todayBTC/(todayBTC+450)*100)+'% of supply';
+  // Milestones
+  renderMilestones();
 }
 
-// ============================================================
-// FETCH BTC
-// ============================================================
-function fetchBTC(cb){
-  var done=false;
-  function deliver(p,ch,src){
-    if(done||!p||p<=0)return;
-    done=true;
-    var wb=document.getElementById('warnBox');
-    if(wb)wb.classList.remove('show');
-    cb(p,ch,src);
+function renderMilestones(){
+  var mw=el('milestonesWrap');if(!mw)return;
+  var mils=[
+    {btc:100000,label:'100K Club',icon:'100'},
+    {btc:200000,label:'200K Milestone',icon:'200'},
+    {btc:500000,label:'Half a Million',icon:'0.5M'},
+    {btc:750000,label:'750K Threshold',icon:'750K'},
+    {btc:800000,label:'800K Achieved',icon:'800K'},
+    {btc:818334,label:'Current Holdings',icon:'NOW'},
+    {btc:1000000,label:'The Million BTC Goal',icon:'1M'},
+  ];
+  var recentBTC=EK.slice(0,4).reduce(function(a,r){return a+(r.btc||0)},0)/4;
+  var html='';
+  mils.forEach(function(m){
+    var done=HOLDINGS>=m.btc;
+    var next=!done&&HOLDINGS>=mils[mils.indexOf(m)-1]&&mils.indexOf(m)>0;
+    var cls=m.btc===HOLDINGS?'done':done?'done':next?'next':'future';
+    var weeksAway=done?null:Math.ceil((m.btc-HOLDINGS)/recentBTC);
+    html+='<div class="milestone">';
+    html+='<div class="m-icon '+cls+'">'+(done?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gn)" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':m.icon==='NOW'?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--og)" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>':'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--txt3)" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>')+'</div>';
+    html+='<div><div class="m-title">'+num(m.btc)+' BTC ? '+m.label+'</div>';
+    html+='<div class="m-sub">'+(done?'ACHIEVED':'~'+weeksAway+' weeks at current pace')+'</div></div>';
+    html+='<div class="m-val" style="color:'+(done?'var(--gn)':m.btc===1000000?'var(--og)':'var(--txt3)')+'">'+
+      (done?'DONE':'~'+weeksAway+'w')+'</div>';
+    html+='</div>';
+  });
+  mw.innerHTML=html;
+}
+
+// ?? RENDER: STRC TAB ??????????????????????????????????????????
+function renderSTRC(){
+  var sb=el('strcBig');if(sb){sb.textContent='$'+STRC_P.toFixed(2);var gs=gateStatus();sb.style.color=gs==='OPEN'?'var(--gn)':gs==='REDUCED'?'var(--og)':'var(--rd)';}
+  var vp=el('strcVsPar');
+  if(vp){var diff=STRC_P-100;vp.textContent=(diff>=0?'+':'')+'$'+diff.toFixed(2);vp.style.color=diff>=0?'var(--gn)':'var(--rd)';}
+  var vs=el('strcVolShares');if(vs)vs.textContent=STRC_VOL>0?num(STRC_VOL)+' sh':'fetching...';
+  var vd=el('strcVolDollar');if(vd)vd.textContent=STRC_VOL>0?money(STRC_VOL*STRC_P):'--';
+  // Next dividend date - STRC pays monthly around 15th
+  var dnd=el('divNextDate');
+  if(dnd){var now=new Date();var d15=new Date(now.getFullYear(),now.getMonth(),15);if(now>d15)d15=new Date(now.getFullYear(),now.getMonth()+1,15);dnd.textContent='~'+d15.toLocaleDateString('en-US',{month:'short',day:'numeric'});}
+  // Proceeds per hour estimate
+  var ph=el('strcProcHr');
+  if(ph&&STRC_VOL>0){
+    var min=getETMin();
+    var elapsed=Math.max(1,min-240); // mins since 4am
+    var rate=STRC_VOL*STRC_P/elapsed*60; // dollars per hour
+    ph.textContent=money(rate*strcCapture()*0.975)+'/hr';
   }
+  // BTC needed to cover dividends
+  var btcDiv=el('btcCoverDiv');
+  if(btcDiv){var btcNeeded=1100000000/BTC_P;btcDiv.textContent=num(Math.round(btcNeeded))+' BTC/yr';}
+}
 
-  // API 1: CoinGecko - open CORS
-  fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true',{cache:'no-store'})
-    .then(function(r){return r.json();})
-    .then(function(d){if(d.bitcoin&&d.bitcoin.usd>0)deliver(d.bitcoin.usd,d.bitcoin.usd_24h_change,'CoinGecko');})
-    .catch(function(){});
+// ?? RENDER: INVESTOR TAB ??????????????????????????????????????
+function renderInvestor(){
+  var mktCap=MSTR_P*SHARES;
+  var btcNav=HOLDINGS*BTC_P;
+  var nav=mktCap/btcNav;
+  var navEl=el('iNAV');
+  if(navEl){navEl.textContent=nav.toFixed(2)+'x';navEl.style.color=nav<1?'var(--gn)':nav<1.5?'var(--og)':'var(--yl)';}
+  var mc=el('iMktCap');if(mc)mc.textContent=money(mktCap);
+  var nv=el('iNAVval');if(nv)nv.textContent=money(btcNav);
+  var nd=el('iNAVdiff');
+  if(nd){var diff=mktCap-btcNav;nd.textContent=(diff>=0?'+':'')+money(diff);nd.style.color=diff>=0?'var(--og)':'var(--gn)';}
+  // Analyst target bar
+  var low=145,avg=335,high=705;
+  var range=high-low;
+  var curPct=(MSTR_P-low)/range*100;
+  var avgPct=(avg-low)/range*100;
+  var tr=el('targetRange');if(tr){tr.style.left='0%';tr.style.width='100%';}
+  var tc2=el('targetCurrent');if(tc2)tc2.style.left=Math.max(0,Math.min(100,curPct))+'%';
+  var ta=el('targetAvg');if(ta)ta.style.left=avgPct+'%';
+  var tcu=el('tCurrent');if(tcu)tcu.textContent='$'+MSTR_P.toFixed(0)+' now';
+  var up=el('iUpside');if(up)up.textContent=pct((avg-MSTR_P)/MSTR_P*100,1)+' to avg';
+  // Capital
+  var cm=el('cMstrCap');if(cm)cm.textContent=money(mktCap);
+  var cb=el('cBTCNav');if(cb)cb.textContent=money(btcNav);
+  // Earnings countdown
+  var ec=el('earningsCountdown');
+  if(ec){
+    var earn=new Date('2026-05-05T20:00:00-04:00');
+    var now=new Date();
+    var diff2=earn-now;
+    if(diff2<0){ec.textContent='REPORTED';ec.style.color='var(--gn)';}
+    else{var d=Math.floor(diff2/864e5);var h=Math.floor((diff2%864e5)/36e5);ec.textContent=d+'d '+h+'h';}
+  }
+}
 
-  // API 2: CoinCap - open CORS, good mobile support
-  fetch('https://api.coincap.io/v2/assets/bitcoin',{cache:'no-store'})
-    .then(function(r){return r.json();})
-    .then(function(d){var p=parseFloat(d.data&&d.data.priceUsd);if(p>0)deliver(p,parseFloat(d.data.changePercent24Hr),'CoinCap');})
-    .catch(function(){});
+// ?? RENDER: 8-K TABLE ?????????????????????????????????????????
+function renderEK(){
+  var tb=el('ekTbody');if(!tb)return;
+  var html='';
+  var cumCost=0;
+  EK.forEach(function(r,i){
+    cumCost+=(r.raised||0);
+    html+='<tr>';
+    html+='<td>'+r.w+(i===0?'<span class="new-badge">LATEST</span>':'')+'</td>';
+    html+='<td class="og-val">'+(r.btc?num(r.btc)+' BTC':'--')+'</td>';
+    html+='<td>'+(r.avg?'$'+r.avg.toLocaleString():'--')+'</td>';
+    html+='<td>'+(r.raised?'$'+r.raised+'M':'--')+'</td>';
+    html+='<td style="color:var(--txt3)">'+r.src+'</td>';
+    html+='<td>'+num(r.total)+'</td>';
+    html+='<td style="color:var(--txt2)">$'+cumCost.toFixed(1)+'M</td>';
+    html+='</tr>';
+  });
+  tb.innerHTML=html;
+}
 
-  // API 3: Binance - open CORS
+// ?? RENDER: NEWS ??????????????????????????????????????????????
+function renderNews(){
+  var nf=el('newsFeed');if(!nf)return;
+  var html='';
+  NEWS.forEach(function(n){
+    html+='<div class="news-item" onclick="window.open(\''+n.u+'\',\'_blank\')">';
+    html+='<div class="n-bar"></div>';
+    html+='<div><div class="nt">'+n.t+'</div>';
+    html+='<div class="nm"><span>'+n.s+'</span><span>'+n.a+'</span></div></div>';
+    html+='</div>';
+  });
+  nf.innerHTML=html;
+}
+
+// ?? RENDER: GAUGE ?????????????????????????????????????????????
+function renderGauge(){
+  var c=el('gaugeCanvas');if(!c)return;
+  var ctx=c.getContext('2d');
+  var cx=90,cy=90,r=65;
+  ctx.clearRect(0,0,180,110);
+  var g=ctx.createLinearGradient(25,90,155,90);
+  g.addColorStop(0,'#ef4444');g.addColorStop(.5,'#f7931a');g.addColorStop(1,'#22c55e');
+  ctx.beginPath();ctx.arc(cx,cy,r,Math.PI,0);ctx.lineWidth=10;ctx.strokeStyle='rgba(255,255,255,0.05)';ctx.stroke();
+  ctx.beginPath();ctx.arc(cx,cy,r,Math.PI,Math.PI+(FG_SCORE/100*Math.PI));
+  ctx.lineWidth=10;ctx.strokeStyle=g;ctx.lineCap='round';ctx.stroke();
+  var ang=Math.PI+(FG_SCORE/100*Math.PI);
+  ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(ang)*48,cy+Math.sin(ang)*48);
+  ctx.strokeStyle='rgba(255,255,255,0.9)';ctx.lineWidth=2;ctx.lineCap='round';ctx.stroke();
+  ctx.beginPath();ctx.arc(cx,cy,4,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,0.9)';ctx.fill();
+  var fn=el('fgNum');if(fn){fn.textContent=FG_SCORE;fn.style.color=FG_SCORE>=55?'var(--gn)':FG_SCORE<=45?'var(--rd)':'var(--og)';}
+  var fl=el('fgLbl');if(fl)fl.textContent=FG_SCORE>=75?'Extreme Greed':FG_SCORE>=55?'Greed':FG_SCORE>=45?'Neutral':FG_SCORE>=25?'Fear':'Extreme Fear';
+  var fy=el('fgYest');if(fy){fy.textContent=FG_YEST;fy.style.color=FG_YEST>=55?'var(--gn)':FG_YEST<=45?'var(--rd)':'var(--og)';}
+  var fw=el('fgWeek');if(fw){fw.textContent=FG_WEEK;fw.style.color=FG_WEEK>=55?'var(--gn)':FG_WEEK<=45?'var(--rd)':'var(--og)';}
+}
+
+// ?? RENDER ALL ????????????????????????????????????????????????
+function renderAll(){
+  renderStrip();
+  renderGate();
+  renderHoldings();
+  renderModels();
+  renderWeekBar();
+  renderAccum();
+  renderSTRC();
+  renderInvestor();
+  renderGauge();
+}
+
+// ?? FETCH: BTC ????????????????????????????????????????????????
+function fetchBTC(){
+  function done(p,chg){
+    if(!p||p<=0)return;
+    BTC_P=p;
+    var e=el('sBTCc');if(e){e.textContent=pct(chg);e.className='chg '+(chg>=0?'up':'dn');}
+    renderAll();
+  }
   fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT',{cache:'no-store'})
     .then(function(r){return r.json();})
-    .then(function(d){var p=parseFloat(d.lastPrice);if(p>0)deliver(p,parseFloat(d.priceChangePercent),'Binance');})
-    .catch(function(){});
-
-  // API 4: Kraken - open CORS, reliable on mobile
-  fetch('https://api.kraken.com/0/public/Ticker?pair=XBTUSD',{cache:'no-store'})
+    .then(function(d){done(parseFloat(d.lastPrice),parseFloat(d.priceChangePercent));}).catch(function(){});
+  fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true',{cache:'no-store'})
     .then(function(r){return r.json();})
-    .then(function(d){var p=d.result&&d.result.XXBTZUSD&&parseFloat(d.result.XXBTZUSD.c[0]);if(p>0)deliver(p,null,'Kraken');})
-    .catch(function(){});
-
-  // API 5: Bitfinex - open CORS, great mobile support
-  fetch('https://api-pub.bitfinex.com/v2/ticker/tBTCUSD',{cache:'no-store'})
-    .then(function(r){return r.json();})
-    .then(function(d){var p=parseFloat(d[6]);if(p>0)deliver(p,parseFloat(d[5])*100,'Bitfinex');})
-    .catch(function(){});
-
-  // API 6: Bybit - open CORS, fast
-  fetch('https://api.bybit.com/v5/market/tickers?category=spot&symbol=BTCUSDT',{cache:'no-store'})
-    .then(function(r){return r.json();})
-    .then(function(d){var p=d.result&&d.result.list&&parseFloat(d.result.list[0]&&d.result.list[0].lastPrice);if(p>0)deliver(p,null,'Bybit');})
-    .catch(function(){});
-
-  // API 7: CoinGecko v3 alternate endpoint
-  fetch('https://api.coingecko.com/api/v3/coins/bitcoin?localization=false&tickers=false&community_data=false&developer_data=false',{cache:'no-store'})
-    .then(function(r){return r.json();})
-    .then(function(d){var p=d.market_data&&d.market_data.current_price&&d.market_data.current_price.usd;if(p>0)deliver(p,null,'CoinGecko-v2');})
-    .catch(function(){});
-
-  // Fallback after 8s - show seed price with warning
-  setTimeout(function(){
-    if(!done){
-      done=true;
-      var wb=document.getElementById('warnBox');
-      if(wb)wb.classList.add('show');
-      cb(BTC_P>0?BTC_P:76000,null,'seed');
-    }
-  },8000);
+    .then(function(d){if(d.bitcoin)done(d.bitcoin.usd,d.bitcoin.usd_24h_change||0);}).catch(function(){});
+  setTimeout(fetchBTC,60000);
 }
 
-
-
-function fetchSTRC(cb){
-  var _scheduled = false;  // ensures exactly ONE 60s reschedule fires
-
-  function done(p, vol, src){
-    if(!p||isNaN(p)||p<=0||p>9999) return;
-    var dollarVol = vol > 0 ? vol * p : 0;
-    _strcCache = p;
-    _strcSrc   = src;
-    cb(p, true, dollarVol);
-    // Only the FIRST successful source schedules the next cycle
-    if(!_scheduled){
-      _scheduled = true;
-      setTimeout(function(){ fetchSTRC(cb); }, 60000);
-    }
+// ?? FETCH: MSTR ???????????????????????????????????????????????
+function fetchMSTR(){
+  var s=false;
+  function done(p,chg){
+    if(!p||p<=0)return;
+    MSTR_P=p;
+    var e=el('sMSTRc');if(e){e.textContent=pct(chg);e.className='chg '+(chg>=0?'up':'dn');}
+    renderStrip();renderInvestor();
+    if(!s){s=true;setTimeout(fetchMSTR,60000);}
   }
-
-  // Show cached/seed price immediately - never blank
-  cb(_strcCache > 0 ? _strcCache : 99.42, false, STRC_VOL);
-
-  // SOURCE 1: Vercel /api/strc - same domain, no CORS, returns price+volume
-  fetch('/api/strc?t='+Date.now(), {cache:'no-store'})
-    .then(function(r){ return r.json(); })
-    .then(function(d){ if(d&&d.price>0) done(d.price, d.volume||0, d.source||'API'); })
-    .catch(function(){});
-
-  // SOURCE 2: Finnhub - CORS-open, fast, returns price+volume
-  fetch('https://finnhub.io/api/v1/quote?symbol=STRC&token=d7as1i9r01qtpbh9kg8g', {cache:'no-store'})
-    .then(function(r){ return r.json(); })
-    .then(function(d){ if(d&&d.c>0) done(d.c, d.v||0, 'Finnhub'); })
-    .catch(function(){});
-
-  // SOURCE 3: Yahoo Finance direct
-  fetch('https://query2.finance.yahoo.com/v7/finance/quote?symbols=STRC&fields=regularMarketPrice,regularMarketVolume,marketState,preMarketPrice,postMarketPrice', {cache:'no-store'})
-    .then(function(r){ return r.json(); })
-    .then(function(d){
-      var q = d.quoteResponse&&d.quoteResponse.result&&d.quoteResponse.result[0];
-      if(!q) return;
-      var st = q.marketState||'REGULAR';
-      var p  = st==='PRE'  && q.preMarketPrice  > 0 ? q.preMarketPrice
-             : st==='POST' && q.postMarketPrice > 0 ? q.postMarketPrice
-             : q.regularMarketPrice||0;
-      if(p>0) done(p, q.regularMarketVolume||0, 'Yahoo/'+st);
-    }).catch(function(){});
-
-  // SOURCE 4: allorigins proxy -> Yahoo (CORS fallback)
-  fetch('https://api.allorigins.win/raw?url='+encodeURIComponent('https://query2.finance.yahoo.com/v7/finance/quote?symbols=STRC&fields=regularMarketPrice,regularMarketVolume,marketState'), {cache:'no-store'})
-    .then(function(r){ return r.text(); })
-    .then(function(t){
-      var d = JSON.parse(t);
-      var q = d.quoteResponse&&d.quoteResponse.result&&d.quoteResponse.result[0];
-      if(q&&q.regularMarketPrice>0) done(q.regularMarketPrice, q.regularMarketVolume||0, 'YF-proxy');
-    }).catch(function(){});
-
-  // Hard guarantee: if ALL sources fail within 5s, reschedule in 30s anyway
-  setTimeout(function(){
-    if(!_scheduled){
-      _scheduled = true;
-      if(_strcCache>0) cb(_strcCache, false, STRC_VOL); // show cache
-      setTimeout(function(){ fetchSTRC(cb); }, 30000);  // retry sooner
-    }
-  }, 5000);
+  fetch('https://finnhub.io/api/v1/quote?symbol=MSTR&token=d7as1i9r01qtpbh9kg8g',{cache:'no-store'})
+    .then(function(r){return r.json();})
+    .then(function(d){if(d&&d.c>0)done(d.c,(d.c-d.pc)/d.pc*100);}).catch(function(){});
+  fetch('https://query2.finance.yahoo.com/v7/finance/quote?symbols=MSTR&fields=regularMarketPrice,regularMarketChangePercent',{cache:'no-store'})
+    .then(function(r){return r.json();})
+    .then(function(d){var q=d.quoteResponse&&d.quoteResponse.result&&d.quoteResponse.result[0];if(q&&q.regularMarketPrice>0)done(q.regularMarketPrice,q.regularMarketChangePercent||0);}).catch(function(){});
+  setTimeout(function(){if(!s){s=true;setTimeout(fetchMSTR,30000);}},5000);
 }
 
-
-// ============================================================
-// FEAR AND GREED
-// ============================================================
-function fgColor(s){return s<=20?'#ff4060':s<=40?'#ff8c42':s<=60?'#f7931a':s<=80?'#7ed321':'#00d084';}
-function fgLabel(s){return s<=20?'EXTREME FEAR':s<=40?'FEAR':s<=60?'NEUTRAL':s<=80?'GREED':'EXTREME GREED';}
-function calcRSI(arr){
-  if(arr.length<2)return 50;
-  var g=0,l=0,n=arr.length-1;
-  for(var i=1;i<arr.length;i++){var c=arr[i]-arr[i-1];if(c>0)g+=c;else l-=c;}
-  var ag=g/n,al=l/n;if(al===0)return 100;
-  return Math.round(100-(100/(1+ag/al)));
-}
-function computeFG(){
-  var d=FG_DATA, sigs=[];
-  var navSc=50;
-  if(d.mstrP&&BTC_P>0){var nav=(HOLDINGS*BTC_P)/MSTR_SHARES,prem=((d.mstrP-nav)/nav)*100;navSc=Math.max(0,Math.min(100,50+prem*0.25));}
-  var rsi=d.mstrRSI||50,rsiSc=rsi<30?rsi*.67:rsi<50?20+(rsi-30)*1.5:rsi<70?50+(rsi-50)*1.5:80+(rsi-70)*.67;
-  var divSc=50;if(d.mstrChg7!=null&&d.btcChg7!=null){divSc=Math.max(0,Math.min(100,50+(d.mstrChg7-d.btcChg7)*2.5));}
-  var atmSc=Math.max(0,Math.min(100,50+((STRC_P-100)/100)*200));
-  var btcMSc=50;if(d.btcChg7!=null)btcMSc=Math.max(0,Math.min(100,50+d.btcChg7*3));
-  var c1Sc=50;if(d.mstrChg1!=null)c1Sc=Math.max(0,Math.min(100,50+d.mstrChg1*3));
-  sigs=[
-    {sc:Math.round(navSc),w:25},
-    {sc:Math.round(Math.max(0,Math.min(100,rsiSc))),w:20},
-    {sc:Math.round(divSc),w:18},
-    {sc:Math.round(atmSc),w:15},
-    {sc:Math.round(btcMSc),w:12},
-    {sc:d.btcFG||50,w:7},
-    {sc:Math.round(c1Sc),w:3}
-  ];
-  var wSum=0,wTot=0;
-  sigs.forEach(function(s){wSum+=s.sc*s.w;wTot+=s.w;});
-  FG_SCORE=Math.round(wSum/wTot);
-}
-function renderFG(){
-  computeFG();
-  var col=fgColor(FG_SCORE);
-  var sc=el('fgScore');if(sc){sc.textContent=FG_SCORE;sc.style.color=col;}
-  var md=el('fgMood');if(md){md.textContent=fgLabel(FG_SCORE);md.style.color=col;}
-  set('fgUpd',new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true}));
-}
-function drawFGGauge(){
-  var cv=el('fgCv');if(!cv)return;
-  // Resize canvas to fit on mobile
-  var ctr=cv.parentElement;
-  if(ctr&&ctr.clientWidth>0&&ctr.clientWidth<220){
-    cv.width=ctr.clientWidth;cv.height=Math.round(ctr.clientWidth*0.56);
+// ?? FETCH: STRC ???????????????????????????????????????????????
+function fetchSTRC(){
+  var s=false;
+  function done(p,vol,src){
+    if(!p||p<=0)return;
+    STRC_P=p;if(vol>0)STRC_VOL=vol;
+    var e=el('sSTRCc');
+    if(e){var d=p-100;e.textContent=(d>=0?'+':'')+'$'+d.toFixed(2)+' vs par';e.className='chg '+(d>=0?'up':'dn');}
+    renderGate();renderSTRC();renderModels();renderWeekBar();renderStrip();
+    if(!s){s=true;setTimeout(fetchSTRC,60000);}
   }
-  var W=cv.width,H=cv.height,ctx=cv.getContext('2d');
-  ctx.clearRect(0,0,W,H);
-  var cx=W/2,cy=H-12,r=Math.min(W*.44,H*.82);
-  var zones=[{f:0,t:20,c:'#ff4060'},{f:20,t:40,c:'#ff8c42'},{f:40,t:60,c:'#f7931a'},{f:60,t:80,c:'#7ed321'},{f:80,t:100,c:'#00d084'}];
-  zones.forEach(function(z){
-    var aF=Math.PI+(z.f/100)*Math.PI,aT=Math.PI+(z.t/100)*Math.PI;
-    ctx.beginPath();ctx.arc(cx,cy,r,aF,aT);ctx.arc(cx,cy,r*.58,aT,aF,true);ctx.closePath();
-    ctx.fillStyle=z.c;ctx.globalAlpha=.18;ctx.fill();ctx.globalAlpha=1;
-    ctx.beginPath();ctx.arc(cx,cy,r,aF,aT);ctx.strokeStyle=z.c;ctx.lineWidth=7;ctx.stroke();
-  });
-  var tks=[{p:5,t:'Fear'},{p:50,t:'Neutral'},{p:95,t:'Greed'}];
-  ctx.font='7px monospace';ctx.textAlign='center';ctx.textBaseline='bottom';
-  tks.forEach(function(tk){
-    var a=Math.PI+(tk.p/100)*Math.PI;
-    ctx.fillStyle='rgba(100,130,160,.6)';
-    ctx.fillText(tk.t,cx+Math.cos(a)*(r+13),cy+Math.sin(a)*(r+13));
-  });
-  var target=Math.PI+(FG_SCORE/100)*Math.PI;
-  FG_NEEDLE+=(target-FG_NEEDLE)*0.05;
-  var nx=cx+Math.cos(FG_NEEDLE)*r*.78,ny=cy+Math.sin(FG_NEEDLE)*r*.78;
-  var nc=fgColor(FG_SCORE);
-  ctx.beginPath();ctx.moveTo(cx+1,cy+1);ctx.lineTo(nx+1,ny+1);ctx.strokeStyle='rgba(0,0,0,.4)';ctx.lineWidth=3;ctx.stroke();
-  ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(nx,ny);ctx.strokeStyle=nc;ctx.lineWidth=2.5;ctx.shadowColor=nc;ctx.shadowBlur=8;ctx.stroke();ctx.shadowBlur=0;
-  ctx.beginPath();ctx.arc(cx,cy,5.5,0,Math.PI*2);ctx.fillStyle=nc;ctx.shadowColor=nc;ctx.shadowBlur=10;ctx.fill();ctx.shadowBlur=0;
-  requestAnimationFrame(drawFGGauge);
-}
-
-// Fetch MSTR price directly on load so mNAV shows immediately
-
-
-function fetchFGData(cb){
-  var done=0;function tick(){done++;if(done>=3)cb();}
-  var ao1='https://api.allorigins.win/raw?url=';
-  fetch(ao1+encodeURIComponent('https://query1.finance.yahoo.com/v10/finance/quoteSummary/MSTR?modules=price,summaryDetail'),{cache:'no-store'})
-    .then(function(r){return r.text();})
-    .then(function(t){
-      var pr=JSON.parse(t).quoteSummary.result[0].price;
-      FG_DATA.mstrP=pr.regularMarketPrice&&pr.regularMarketPrice.raw;
-      FG_DATA.mstrChg1=pr.regularMarketChangePercent&&pr.regularMarketChangePercent.raw*100;
-      tick();
-    }).catch(function(){tick();});
-  fetch(ao1+encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/MSTR?interval=1d&range=30d'),{cache:'no-store'})
-    .then(function(r){return r.text();})
-    .then(function(t){
-      var closes=JSON.parse(t).chart.result[0].indicators.quote[0].close;
-      closes=closes.filter(function(x){return x!=null;});
-      if(closes.length>=8){var cur=closes[closes.length-1],wk=closes[closes.length-8];FG_DATA.mstrChg7=((cur-wk)/wk)*100;}
-      if(closes.length>=15)FG_DATA.mstrRSI=calcRSI(closes.slice(-15));
-      tick();
-    }).catch(function(){tick();});
-  fetch('https://api.coincap.io/v2/assets/bitcoin/history?interval=d1&limit=8',{cache:'no-store'})
+  done(STRC_P,STRC_VOL,'seed');s=false;
+  fetch('/api/strc?t='+Date.now(),{cache:'no-store'})
+    .then(function(r){return r.json();})
+    .then(function(d){if(d&&d.price>0)done(d.price,d.volume||0,d.source||'API');}).catch(function(){});
+  fetch('https://finnhub.io/api/v1/quote?symbol=STRC&token=d7as1i9r01qtpbh9kg8g',{cache:'no-store'})
+    .then(function(r){return r.json();})
+    .then(function(d){if(d&&d.c>0)done(d.c,d.v||0,'Finnhub');}).catch(function(){});
+  fetch('https://query2.finance.yahoo.com/v7/finance/quote?symbols=STRC&fields=regularMarketPrice,regularMarketVolume,marketState,preMarketPrice,postMarketPrice',{cache:'no-store'})
     .then(function(r){return r.json();})
     .then(function(d){
-      var pts=d.data;
-      if(pts&&pts.length>=2){var cur=parseFloat(pts[pts.length-1].priceUsd),wk=parseFloat(pts[0].priceUsd);FG_DATA.btcChg7=((cur-wk)/wk)*100;}
-      return fetch('https://api.alternative.me/fng/?limit=1',{cache:'no-store'});
-    })
-    .then(function(r){return r.json();})
-    .then(function(d){FG_DATA.btcFG=parseInt(d.data[0].value);tick();})
-    .catch(function(){tick();});
+      var q=d.quoteResponse&&d.quoteResponse.result&&d.quoteResponse.result[0];if(!q)return;
+      var st=q.marketState||'REGULAR';
+      var p=st==='PRE'&&q.preMarketPrice>0?q.preMarketPrice:st==='POST'&&q.postMarketPrice>0?q.postMarketPrice:q.regularMarketPrice||0;
+      if(p>0)done(p,q.regularMarketVolume||0,'Yahoo');
+    }).catch(function(){});
+  setTimeout(function(){if(!s){s=true;setTimeout(fetchSTRC,30000);}},5000);
 }
 
-// ============================================================
-// PILL MACHINE CANVAS
-// ============================================================
-function drawPill(){
-  var cv=el('pmCanvas');if(!cv)return;
-  var W=cv.parentElement&&cv.parentElement.clientWidth>50?cv.parentElement.clientWidth:700;
-  if(cv.width!==W)cv.width=W;
-  var H=320;if(cv.height!==H)cv.height=H;
-  var ctx=cv.getContext('2d');
-  var t=Date.now()*.001;
-  var ao2=isGateOpen();
-  var sess=getSession();
-  var running=ao2?(sess.strcFrac>0||sess.mstrFrac>0):false;
-  ctx.clearRect(0,0,W,H);
-  var MX=W*.5,MY=H*.5,MW=Math.min(W*.26,130),MH=Math.min(H*.62,200),ML=MX-MW/2,MT=MY-MH/2;
-  ctx.strokeStyle='rgba(247,147,26,.15)';ctx.lineWidth=1;ctx.setLineDash([8,8]);
-  ctx.lineDashOffset=-(t*40)%16;ctx.beginPath();ctx.moveTo(0,MY+2);ctx.lineTo(ML,MY+2);ctx.stroke();
-  ctx.lineDashOffset=-(t*40+8)%16;ctx.beginPath();ctx.moveTo(MX+MW/2,MY+2);ctx.lineTo(W,MY+2);ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.fillStyle='rgba(14,20,32,.96)';ctx.strokeStyle='rgba(247,147,26,'+(running?.45:.18)+')';ctx.lineWidth=1.5;
-  ctx.beginPath();ctx.roundRect(ML,MT,MW,MH,10);ctx.fill();ctx.stroke();
-  if(running){var pulse=(Math.sin(t*1.5)+1)/2;ctx.shadowColor='rgba(247,147,26,'+(0.12+pulse*.12)+')';ctx.shadowBlur=20+pulse*15;ctx.strokeStyle='rgba(247,147,26,'+(0.18+pulse*.15)+')';ctx.beginPath();ctx.roundRect(ML-2,MT-2,MW+4,MH+4,12);ctx.stroke();ctx.shadowBlur=0;}
-  var gPos=[{x:MX,y:MY-MH*.08},{x:MX+30,y:MY-MH*.08-18},{x:MX-28,y:MY-MH*.08+12}];
-  PM_GEARS.forEach(function(g,i){
-    if(running)g.a+=g.s;
-    var gx=gPos[i].x,gy=gPos[i].y,teeth=8,ir=g.r*.65;
-    ctx.save();ctx.translate(gx,gy);ctx.rotate(g.a);
-    ctx.beginPath();
-    for(var k=0;k<teeth*2;k++){var ang=(k/(teeth*2))*Math.PI*2,r2=k%2===0?g.r:ir;if(k===0)ctx.moveTo(Math.cos(ang)*r2,Math.sin(ang)*r2);else ctx.lineTo(Math.cos(ang)*r2,Math.sin(ang)*r2);}
-    ctx.closePath();ctx.fillStyle='rgba(247,147,26,'+(running?.42:.18)+')';ctx.strokeStyle='rgba(247,147,26,'+(running?.7:.3)+')';ctx.lineWidth=1;ctx.fill();ctx.stroke();
-    ctx.beginPath();ctx.arc(0,0,g.r*.28,0,Math.PI*2);ctx.fillStyle='rgba(247,147,26,.5)';ctx.fill();ctx.restore();
-  });
-  ctx.fillStyle='rgba(247,147,26,.9)';ctx.font='bold '+(MW*.09)+'px monospace';ctx.textAlign='center';ctx.textBaseline='middle';
-  ctx.fillText('ORANGE',MX,MT+MH*.72);ctx.fillText('PILL',MX,MT+MH*.82);
-  ctx.fillStyle='rgba(200,160,100,.5)';ctx.font=(MW*.07)+'px monospace';ctx.fillText('MACHINE',MX,MT+MH*.91);
-  var lc=running?'#00d084':'#ff4060';var lp=running?(Math.sin(t*3)+1)/2:0;
-  ctx.beginPath();ctx.arc(ML+MW-13,MT+13,5,0,Math.PI*2);ctx.fillStyle=lc;ctx.shadowColor=lc;ctx.shadowBlur=5+lp*8;ctx.fill();ctx.shadowBlur=0;
-  ctx.fillStyle='rgba(0,208,132,.3)';ctx.strokeStyle='rgba(0,208,132,.5)';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(ML-2,MY-13,8,26,3);ctx.fill();ctx.stroke();
-  ctx.fillStyle='rgba(247,147,26,.3)';ctx.strokeStyle='rgba(247,147,26,.5)';ctx.beginPath();ctx.roundRect(ML+MW-6,MY-13,8,26,3);ctx.fill();ctx.stroke();
-  if(t-PM_LASTD>(running?1.3:5)){
-    PM_LASTD=t;var cnt=running?2:1;
-    for(var k=0;k<cnt;k++){
-      PM_DOLLARS.push({x:W*.04+Math.random()*W*.08,y:MY+(Math.random()-.5)*28,tx:ML-6,ty:MY+(Math.random()-.5)*10,age:0,done:false,val:Math.round(running?500000+Math.random()*2000000:50000+Math.random()*200000)});
-    }
-  }
-  for(var i=PM_DOLLARS.length-1;i>=0;i--){
-    var d=PM_DOLLARS[i];d.age+=.016;
-    if(!d.done){d.x+=(d.tx-d.x)*.08;d.y+=(d.ty-d.y)*.08;
-      if(Math.abs(d.x-d.tx)<4){d.done=true;
-        if(running){
-          for(var k=0;k<4;k++)PM_SPARKS.push({x:ML,y:MY+(Math.random()-.5)*18,vx:-(1+Math.random()*2),vy:(Math.random()-.5)*3,age:0});
-          PM_COINS.push({x:ML+MW+6,y:MY+(Math.random()-.5)*10,vx:2+Math.random()*2.5,vy:-2+Math.random(),va:.11,age:0,r:14+Math.random()*8});
+// ?? FETCH: FEAR & GREED ???????????????????????????????????????
+function fetchFG(){
+  fetch('https://api.alternative.me/fng/?limit=7',{cache:'no-store'})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(!d.data)return;
+      FG_SCORE=parseInt(d.data[0].value)||55;
+      FG_YEST =parseInt(d.data[1]&&d.data[1].value)||52;
+      FG_WEEK =parseInt(d.data[6]&&d.data[6].value)||48;
+      renderGauge();
+    }).catch(function(){});
+  setTimeout(fetchFG,5*60000);
+}
+
+// ?? FETCH: HOLDINGS (SEC EDGAR) ???????????????????????????????
+function fetchHoldings(){
+  fetch('https://data.sec.gov/submissions/CIK0001050446.json',{headers:{'User-Agent':'OrangeDots/3.0 info@orangedots.app'},cache:'no-store'})
+    .then(function(r){return r.json();})
+    .then(function(data){
+      var f=data.filings&&data.filings.recent;if(!f)return;
+      for(var i=0;i<Math.min(f.form.length,10);i++){
+        if(f.form[i]==='8-K'){
+          var acc=f.accessionNumber[i].replace(/-/g,'');
+          fetch('https://data.sec.gov/Archives/edgar/data/1050446/'+acc+'/'+f.accessionNumber[i]+'-index.json',
+            {headers:{'User-Agent':'OrangeDots/3.0 info@orangedots.app'}})
+            .then(function(r){return r.json();})
+            .then(function(idx){
+              var docs=idx.directory&&idx.directory.item;if(!docs)return;
+              var main=docs.find(function(d){return d.type==='8-K';});if(!main)return;
+              fetch('https://data.sec.gov/Archives/edgar/data/1050446/'+acc+'/'+main.name,
+                {headers:{'User-Agent':'OrangeDots/3.0 info@orangedots.app'}})
+                .then(function(r){return r.text();})
+                .then(function(txt){
+                  var m=txt.match(/(\d{3},\d{3})\s*(?:BTC|bitcoin)/i);
+                  if(m){var n=parseInt(m[1].replace(/,/g,''));
+                    if(n>HOLDINGS&&n<2000000){HOLDINGS=n;renderAll();console.log('Holdings auto-updated:',n);}
+                  }
+                }).catch(function(){});
+            }).catch(function(){});
+          break;
         }
       }
-    }
-    if(d.age<3.5&&!d.done){
-      var al=Math.min(1,d.age*3)*Math.min(1,(3.5-d.age)*2);
-      ctx.save();ctx.globalAlpha=al*.85;
-      ctx.fillStyle='#00d084';ctx.font='bold 22px monospace';ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText('$',d.x,d.y);
-      ctx.font='bold 18px monospace';ctx.fillStyle='rgba(0,208,132,.85)';ctx.fillText(money(d.val),d.x+22,d.y);
-      ctx.restore();
-    } else if(d.done||d.age>=3.5){PM_DOLLARS.splice(i,1);}
-  }
-  if(t-PM_LASTC>(running?.85:3.5)){
-    PM_LASTC=t;PM_COINS.push({x:ML+MW+6,y:MY+(Math.random()-.5)*12,vx:2+Math.random()*2.5,vy:-2.5+Math.random(),va:.1,age:0,r:14+Math.random()*8});
-  }
-  for(var i=PM_COINS.length-1;i>=0;i--){
-    var c=PM_COINS[i];c.age+=.016;c.x+=c.vx;c.vy+=c.va;c.y+=c.vy;c.vx*=.995;
-    if(c.age<4&&c.x<W+30){
-      var al=Math.min(1,c.age*5)*Math.min(1,4-c.age);
-      ctx.save();ctx.globalAlpha=al;ctx.shadowColor='rgba(247,147,26,.7)';ctx.shadowBlur=10;
-      var cg=ctx.createRadialGradient(c.x-c.r*.28,c.y-c.r*.28,c.r*.04,c.x+c.r*.08,c.y+c.r*.08,c.r);
-      cg.addColorStop(0,'rgba(255,248,180,.98)');cg.addColorStop(.25,'rgba(255,210,60,.97)');cg.addColorStop(.55,'rgba(247,147,26,.95)');cg.addColorStop(.88,'rgba(185,82,5,.92)');cg.addColorStop(1,'rgba(100,38,0,.88)');
-      ctx.beginPath();ctx.arc(c.x,c.y,c.r,0,Math.PI*2);ctx.fillStyle=cg;ctx.fill();
-      var hg=ctx.createRadialGradient(c.x-c.r*.34,c.y-c.r*.34,0,c.x-c.r*.18,c.y-c.r*.18,c.r*.62);
-      hg.addColorStop(0,'rgba(255,255,230,.5)');hg.addColorStop(1,'rgba(255,255,200,0)');
-      ctx.fillStyle=hg;ctx.fill();ctx.shadowBlur=0;
-      ctx.fillStyle='rgba(50,15,0,.92)';ctx.font='bold '+(c.r*.95)+'px Georgia,serif';ctx.textAlign='center';ctx.textBaseline='middle';
-      ctx.fillText('\u20BF',c.x,c.y+c.r*.08);ctx.restore();
-    } else {PM_COINS.splice(i,1);}
-  }
-  for(var i=PM_SPARKS.length-1;i>=0;i--){
-    var s=PM_SPARKS[i];s.age+=.016;s.x+=s.vx;s.y+=s.vy;
-    if(s.age<.6){ctx.beginPath();ctx.arc(s.x,s.y,2*(1-s.age/.6),0,Math.PI*2);ctx.fillStyle='#00d084';ctx.globalAlpha=1-s.age/.6;ctx.fill();ctx.globalAlpha=1;}
-    else{PM_SPARKS.splice(i,1);}
-  }
-  ctx.fillStyle='rgba(0,208,132,.55)';ctx.font='9px monospace';ctx.textAlign='center';
-  ctx.fillText('$ DOLLARS',W*.1,MY-28);ctx.fillText('IN',W*.1,MY-17);
-  ctx.fillStyle='rgba(247,147,26,.55)';
-  ctx.fillText('\u20BF BITCOIN',W*.88,MY-28);ctx.fillText('OUT',W*.88,MY-17);
-  if(window.innerWidth >= 768){ requestAnimationFrame(drawPill); }
+    }).catch(function(){});
+  setTimeout(fetchHoldings,6*60*60*1000);
 }
 
-// ============================================================
-// SESSION AMBIENT CANVAS -- colored particles by session
-// ============================================================
-(function(){
-  var cv=el('sessCanvas');if(!cv)return;
-  var ctx=cv.getContext('2d');
-  function resize(){cv.width=window.innerWidth;cv.height=window.innerHeight;}
-  resize();window.addEventListener('resize',resize);
-  function sessCol(type){
-    if(type==='pre')    return[74,158,255];
-    if(type==='regular')return[247,147,26];
-    if(type==='ah')     return[0,208,132];
-    return[40,60,90];
-  }
-  function mkP(W,H,c){
-    var spd=.25+Math.random()*.4,edge=Math.floor(Math.random()*4);
-    var x,y,vx,vy;
-    if(edge===0){x=Math.random()*W;y=-8;vx=(Math.random()-.5)*.3;vy=spd;}
-    else if(edge===1){x=W+8;y=Math.random()*H;vx=-spd;vy=(Math.random()-.5)*.3;}
-    else if(edge===2){x=Math.random()*W;y=H+8;vx=(Math.random()-.5)*.3;vy=-spd;}
-    else{x=-8;y=Math.random()*H;vx=spd;vy=(Math.random()-.5)*.3;}
-    return{x:x,y:y,vx:vx,vy:vy,c:c,sz:1+Math.random()*2,al:0,tal:.025+Math.random()*.04,life:0,max:180+Math.random()*280};
-  }
-  function loop(){
-    ctx.clearRect(0,0,cv.width,cv.height);
-    var sess=getSession();
-    var active=sess.wkday&&sess.min>=240&&sess.min<=1200;
-    cv.style.opacity=active?'1':'0';
-    if(active&&SC_PARTS.length<45)SC_PARTS.push(mkP(cv.width,cv.height,sessCol(sess.type)));
-    for(var i=SC_PARTS.length-1;i>=0;i--){
-      var p=SC_PARTS[i];p.life++;p.x+=p.vx;p.y+=p.vy;
-      if(p.life<30)p.al=Math.min(p.al+p.tal*.15,p.tal);
-      else if(p.life>p.max-40)p.al=Math.max(0,p.al-.003);
-      if(p.life>p.max||p.x<-20||p.x>cv.width+20||p.y<-20||p.y>cv.height+20){SC_PARTS.splice(i,1);continue;}
-      ctx.beginPath();ctx.arc(p.x,p.y,p.sz,0,Math.PI*2);
-      ctx.fillStyle='rgba('+p.c[0]+','+p.c[1]+','+p.c[2]+','+p.al+')';
-      ctx.shadowColor='rgba('+p.c[0]+','+p.c[1]+','+p.c[2]+','+(p.al*4)+')';
-      ctx.shadowBlur=10;ctx.fill();ctx.shadowBlur=0;
-    }
-    requestAnimationFrame(loop);
-  }
-  loop();
-})();
-
-// ============================================================
-// BACKGROUND FALLING COINS
-// ============================================================
-var bgCoins=[];
-(function(){
-  if(window.innerWidth < 768){ return; } // disable on mobile
-  var cv=el('bgCanvas');if(!cv)return;
-  var ctx=cv.getContext('2d');
-  function resize(){cv.width=window.innerWidth;cv.height=window.innerHeight;}
-  resize();window.addEventListener('resize',resize);
-  function mk(init){return{x:Math.random()*cv.width,y:init?Math.random()*cv.height:-30,vy:.3+Math.random()*.5,vx:(Math.random()-.5)*.4,r:12+Math.random()*16,alpha:init?.08+Math.random()*.08:0,tA:.12+Math.random()*.12,sh:Math.random()*Math.PI*2,wb:Math.random()*Math.PI*2,ws:.008+Math.random()*.012};}
-  for(var i=0;i<30;i++)bgCoins.push(mk(true));
-  setInterval(function(){if(bgCoins.length<50)bgCoins.push(mk(false));},800);
-  function loop(){
-    ctx.clearRect(0,0,cv.width,cv.height);
-    var t=Date.now()*.001;
-    for(var i=bgCoins.length-1;i>=0;i--){
-      var c=bgCoins[i];c.vy+=.005;c.y+=c.vy;c.wb+=c.ws;c.x+=c.vx+Math.sin(c.wb)*.3;c.sh+=.04;
-      c.alpha+=(c.tA-c.alpha)*.04;if(c.y>cv.height+40){bgCoins.splice(i,1);continue;}
-      var sh=(Math.sin(t*1.8+c.sh)+1)/2;
-      ctx.save();ctx.globalAlpha=c.alpha;ctx.shadowColor='rgba(247,147,26,.8)';ctx.shadowBlur=18+sh*12;
-      ctx.beginPath();ctx.arc(c.x+1.5,c.y+1.5,c.r+1,0,Math.PI*2);ctx.fillStyle='rgba(80,30,0,.5)';ctx.fill();
-      var g=ctx.createRadialGradient(c.x-c.r*.28,c.y-c.r*.28,c.r*.04,c.x+c.r*.08,c.y+c.r*.08,c.r);
-      g.addColorStop(0,'rgba(255,250,180,.98)');g.addColorStop(.22,'rgba(255,210,55,.97)');g.addColorStop(.52,'rgba(247,147,26,.95)');g.addColorStop(.85,'rgba(185,80,5,.92)');g.addColorStop(1,'rgba(90,35,0,.88)');
-      ctx.beginPath();ctx.arc(c.x,c.y,c.r,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();
-      var hg=ctx.createRadialGradient(c.x-c.r*.34,c.y-c.r*.34,0,c.x-c.r*.18,c.y-c.r*.18,c.r*.62);
-      hg.addColorStop(0,'rgba(255,255,230,'+(0.42+sh*.25)+')');hg.addColorStop(1,'rgba(255,255,200,0)');
-      ctx.fillStyle=hg;ctx.fill();ctx.shadowBlur=0;
-      ctx.fillStyle='rgba(50,15,0,.9)';ctx.font='bold '+(c.r*1.05)+'px Georgia,serif';ctx.textAlign='center';ctx.textBaseline='middle';
-      ctx.fillText('\u20BF',c.x,c.y+c.r*.08);ctx.restore();
-    }
-    requestAnimationFrame(loop);
-  }
-  loop();
-})();
-
-
-// ============================================================
-// 8-K CONFIRMED PURCHASE HISTORY
-// Update every Monday after filing
-// ============================================================
-var PURCHASE_HIST = [
-  {week:'Apr 6-12, 2026',  btc:13927,  avg:71902,  raised:1001.3,  total:780897, note:'8-K confirmed Apr 13'},
-  {week:'Apr 1-5, 2026',   btc:4871,   avg:67718,  raised:371.3,   total:766970},
-  {week:'Mar 24-30, 2026', btc:0,      avg:0,      raised:0,       total:762099, note:'no purchase'},
-  {week:'Mar 17-23, 2026', btc:22048,  avg:71475,  raised:1576,    total:762099},
-  {week:'Mar 10-16, 2026', btc:13850,  avg:73720,  raised:1020,    total:740051},
-  {week:'Mar 3-9, 2026',   btc:7633,   avg:80200,  raised:612,     total:726201},
-  {week:'Feb 24-Mar 1',    btc:6911,   avg:84529,  raised:584,     total:718568},
-  {week:'Feb 17-23, 2026', btc:5400,   avg:95000,  raised:513,     total:711657},
-  {week:'Feb 10-16, 2026', btc:7633,   avg:97514,  raised:744,     total:706257},
-  {week:'Feb 3-9, 2026',   btc:10107,  avg:97514,  raised:985,     total:698624}
-];
-
-// Cumulative milestones for chart (date, total BTC)
-
-
-// mNAV history (sats per share - for sparkline)
-var MNAV_HIST = [
-  390000,410000,425000,448000,462000,438000,
-  480000,495000,510000,498000,522000,540000
-];
-
-// -- RENDER 8-K TABLE ------------------------------------------
-function renderHKTable(){
-  var tbody = document.getElementById('hkBody');
-  if(!tbody)return;
-  tbody.innerHTML = '';
-  PURCHASE_HIST.forEach(function(r){
-    var tr = document.createElement('tr');
-    // Week
-    var td1=document.createElement('td');
-    td1.textContent=r.week;
-    if(r.note){td1.style.color='var(--txt2)';td1.style.fontStyle='italic';}
-    // BTC
-    var td2=document.createElement('td');
-    td2.className='hk-btc';
-    if(r.note==='current week'){td2.textContent='in progress';td2.style.color='var(--og)';}
-    else if(r.btc>0){td2.textContent=num(r.btc)+' BTC';}
-    else{td2.textContent='0 (pause)';td2.style.color='var(--txt2)';}
-    // Avg price
-    var td3=document.createElement('td');
-    td3.textContent=r.avg>0?'$'+num(r.avg):'--';
-    // Raised
-    var td4=document.createElement('td');
-    td4.textContent=r.raised>0?'$'+r.raised.toFixed(0)+'M':'--';
-    // Total
-    var td5=document.createElement('td');
-    td5.className='hk-big';
-    td5.textContent=num(r.total)+' BTC';
-    tr.appendChild(td1);tr.appendChild(td2);tr.appendChild(td3);tr.appendChild(td4);tr.appendChild(td5);
-    tbody.appendChild(tr);
-  });
+// ?? INIT ??????????????????????????????????????????????????????
+function init(){
+  renderAll();
+  renderEK();
+  renderNews();
+  fetchBTC();
+  fetchMSTR();
+  fetchSTRC();
+  fetchFG();
+  fetchHoldings();
 }
 
-// -- RENDER CUMULATIVE CHART -----------------------------------
-
-// ============================================================
-// BITCOIN BLACK HOLE -- WARP SPEED THROUGH THE GALAXY
-// ============================================================
-var BH_T    = 0;
-var BH_INIT = false;
-var BH_STARS = [];
-var BH_STREAM = [];
-var BH_DEBRIS = [];
-var BH_MSGS = ['THERE IS NO SECOND BEST','STRATEGY IS THE STANDARD','1,000,000 BTC IS THE GOAL','BITCOIN IS THE SINGULARITY'];
-var BH_MIDX = 0, BH_MT = 0;
-
-function initBlackHole(){
-  if(BH_INIT) return;
-  var isMobile = window.innerWidth < 768;
-  var cv = document.getElementById('bhCanvas');
-  if(!cv) return;
-  var W = cv.parentElement ? cv.parentElement.clientWidth : 700;
-  cv.width = W; cv.height = Math.round(W * 0.52);
-  BH_INIT = true;
-  var H = cv.height;
-  var cx = W * 0.5, cy = H * 0.5;
-
-  // Warp stars -- each starts at a random angle from center
-  // They fly outward (viewer moving forward) at varying speeds
-  BH_STARS = [];
-  for(var i = 0; i < (isMobile?300:900); i++){
-    var angle = Math.random() * Math.PI * 2;
-    var dist  = Math.random() * Math.max(W, H) * 0.7;
-    // Star color palette: realistic stellar colors
-    var roll = Math.random();
-    var col = roll < 0.45 ? [255,255,255] :
-              roll < 0.62 ? [180,200,255] :   // blue-white O/B class
-              roll < 0.75 ? [255,245,210] :   // yellow-white F/G class
-              roll < 0.85 ? [255,210,120] :   // orange K class
-              roll < 0.92 ? [255,160,80]  :   // red-orange M class
-                            [140,170,255];     // blue giants
-    BH_STARS.push({
-      angle : angle,
-      dist  : dist,
-      z     : 0.1 + Math.random() * 0.9,  // depth -- faster = closer
-      spd   : 0.8 + Math.random() * 3.5,  // outward speed
-      r     : 0.5 + Math.random() * 1.8,
-      col   : col,
-      alpha : 0.4 + Math.random() * 0.6,
-      phase : Math.random() * Math.PI * 2,
-      twinkle: 0.5 + Math.random() * 2.0
-    });
-  }
-
-  // Milky way band -- slower drifting dust/nebula stars
-  for(var i = 0; i < (isMobile?100:400); i++){
-    var bangle = -0.3 + Math.random() * 0.6 + (Math.random() < 0.5 ? 0 : Math.PI);
-    BH_STARS.push({
-      angle : bangle,
-      dist  : 20 + Math.random() * Math.max(W,H) * 0.65,
-      z     : 0.05 + Math.random() * 0.25,
-      spd   : 0.2 + Math.random() * 0.8,
-      r     : 0.3 + Math.random() * 0.9,
-      col   : Math.random() < 0.5 ? [200,215,255] : [255,240,200],
-      alpha : 0.15 + Math.random() * 0.35,
-      phase : Math.random() * Math.PI * 2,
-      twinkle: 0.2 + Math.random() * 0.8
-    });
-  }
-
-  // Orbit particles
-  BH_STREAM = [];
-  for(var i = 0; i < (isMobile?180:520); i++){
-    var ang  = Math.random() * Math.PI * 2;
-    var dist2 = 75 + Math.random() * (Math.min(W,H) * 0.41);
-    BH_STREAM.push({
-      angle : ang,
-      dist  : dist2,
-      baseDist: dist2,
-      spd   : (0.004 + Math.random() * 0.013) / Math.max(dist2 * 0.009, 0.4),
-      r     : 0.7 + Math.random() * 2.3,
-      alpha : 0.3 + Math.random() * 0.7,
-      phase : Math.random() * Math.PI * 2,
-      filled: i < Math.round(0.767 * 520)
-    });
-  }
-
-  // Debris ring
-  BH_DEBRIS = [];
-  for(var i = 0; i < (isMobile?30:90); i++){
-    BH_DEBRIS.push({
-      angle: Math.random() * Math.PI * 2,
-      dist : 42 + Math.random() * 30,
-      spd  : 0.032 + Math.random() * 0.065,
-      r    : 0.8 + Math.random() * 2.4,
-      phase: Math.random() * Math.PI * 2,
-      bright: Math.random() > 0.4
-    });
-  }
-}
-
-function drawBlackHole(){
-  var cv = document.getElementById('bhCanvas');
-  if(!cv){ requestAnimationFrame(drawBlackHole); return; }
-  var W = cv.parentElement ? cv.parentElement.clientWidth : 700;
-  if(cv.width !== W){
-    cv.width = W; cv.height = Math.round(W * 0.52);
-    BH_INIT = false; initBlackHole();
-  }
-  var H   = cv.height;
-  var ctx = cv.getContext('2d');
-  var cx  = W * 0.5, cy = H * 0.5;
-  var R0  = Math.min(W, H) * 0.068;
-  BH_T   += 0.016;
-
-  // Deep space -- full black
-  ctx.fillStyle = '#02030a';
-  ctx.fillRect(0,0,W,H);
-
-  // Subtle nebula glow behind BH
-  var nebGr = ctx.createRadialGradient(cx, cy, R0*2, cx, cy*0.6, H*0.8);
-  nebGr.addColorStop(0,  'rgba(15,8,40,0.35)');
-  nebGr.addColorStop(0.4,'rgba(8,4,25,0.18)');
-  nebGr.addColorStop(1,  'rgba(0,0,0,0)');
-  ctx.fillStyle = nebGr;
-  ctx.fillRect(0,0,W,H);
-
-  // WARP STARS -- stream outward from center (viewer flying forward)
-  for(var i = 0; i < BH_STARS.length; i++){
-    var st = BH_STARS[i];
-    // Move outward
-    st.dist += st.spd * (0.5 + st.z * 1.5);
-    // Reset when off screen
-    var maxD = Math.sqrt(W*W + H*H) * 0.55;
-    if(st.dist > maxD){
-      st.dist  = 2 + Math.random() * 12;
-      st.angle = Math.random() * Math.PI * 2;
-    }
-
-    var x = cx + Math.cos(st.angle) * st.dist;
-    var y = cy + Math.sin(st.angle) * st.dist * 0.72;
-
-    // Skip if inside BH
-    var ddx = x - cx, ddy = y - cy;
-    if(ddx*ddx + ddy*ddy < R0*R0 * 1.8) continue;
-
-    // Streak length based on speed and distance from center
-    var streakLen = st.spd * st.z * (0.4 + st.dist * 0.018);
-    var sx = cx + Math.cos(st.angle) * (st.dist - streakLen);
-    var sy = cy + Math.sin(st.angle) * (st.dist - streakLen) * 0.72;
-
-    // Gravitational pull -- stars near BH get brighter and bend slightly
-    var distToBH = Math.sqrt(ddx*ddx + ddy*ddy);
-    var lensZone = R0 * 8;
-    var lensStr  = distToBH < lensZone ? Math.pow(1-(distToBH/lensZone), 2) * 1.5 : 0;
-    var alpha    = Math.min(1, st.alpha * (0.6 + st.z * 0.6 + lensStr * 0.4));
-
-    // Draw as streak (line) for speed effect
-    var c = st.col;
-    var grad = ctx.createLinearGradient(sx, sy, x, y);
-    grad.addColorStop(0, 'rgba('+c[0]+','+c[1]+','+c[2]+',0)');
-    grad.addColorStop(1, 'rgba('+c[0]+','+c[1]+','+c[2]+','+alpha+')');
-    ctx.beginPath();
-    ctx.moveTo(sx, sy);
-    ctx.lineTo(x, y);
-    ctx.strokeStyle = grad;
-    ctx.lineWidth   = st.r * (0.6 + st.z * 0.8 + lensStr * 0.4);
-    ctx.shadowColor = lensStr > 0.3 ? 'rgba('+c[0]+','+c[1]+','+c[2]+',0.6)' : 'none';
-    ctx.shadowBlur  = lensStr > 0.3 ? lensStr * 12 : 0;
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-
-    // Bright head dot on fast/close stars
-    if(st.z > 0.65 || lensStr > 0.2){
-      ctx.beginPath();
-      ctx.arc(x, y, st.r * (0.5 + st.z * 0.7 + lensStr * 0.5), 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba('+c[0]+','+c[1]+','+c[2]+','+Math.min(1,alpha*1.4)+')';
-      ctx.fill();
-    }
-  }
-
-  // Accretion disk glow rings
-  for(var rr = R0 * 5.2; rr > R0 * 1.2; rr -= R0 * 0.22){
-    var frac = (R0 * 5.2 - rr) / (R0 * 4.0);
-    ctx.beginPath();
-    ctx.ellipse(cx, cy, rr, rr * 0.29, 0, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(247,147,26,'+(frac * 0.11)+')';
-    ctx.lineWidth = 5; ctx.stroke();
-  }
-
-  // Orbit particles
-  for(var i = 0; i < BH_STREAM.length; i++){
-    var p = BH_STREAM[i];
-    p.angle += p.spd;
-    p.dist  -= 0.016 + (1/Math.max(p.dist*0.06,0.5))*0.11;
-    if(p.dist <= R0 + 2){
-      p.dist  = p.baseDist * (0.82 + Math.random() * 0.36);
-      p.angle = Math.random() * Math.PI * 2;
-    }
-    var px2 = cx + Math.cos(p.angle) * p.dist;
-    var py2 = cy + Math.sin(p.angle) * p.dist * 0.38;
-    var prx = 1 - Math.min(1,(p.dist - R0)/(R0 * 4.5));
-    ctx.beginPath();
-    ctx.arc(px2, py2, p.r*(1+prx*0.7), 0, Math.PI*2);
-    if(p.filled){
-      ctx.fillStyle   = 'rgba(247,147,26,'+(p.alpha*(0.4+prx*0.6))+')';
-      ctx.shadowColor = prx > 0.5 ? 'rgba(247,147,26,0.7)' : 'none';
-      ctx.shadowBlur  = prx > 0.5 ? 4 + prx*10 : 0;
-    } else {
-      ctx.fillStyle = 'rgba(50,80,165,'+(p.alpha*0.55)+')';
-      ctx.shadowBlur = 0;
-    }
-    ctx.fill(); ctx.shadowBlur = 0;
-  }
-
-  // Hot accretion ring
-  var hGr = ctx.createRadialGradient(cx,cy,R0*0.85,cx,cy,R0*2.5);
-  hGr.addColorStop(0,  'rgba(255,248,160,0.9)');
-  hGr.addColorStop(0.2,'rgba(255,165,35,0.72)');
-  hGr.addColorStop(0.55,'rgba(195,65,10,0.22)');
-  hGr.addColorStop(1,  'rgba(0,0,0,0)');
-  ctx.fillStyle = hGr;
-  ctx.beginPath();
-  ctx.ellipse(cx,cy,R0*2.5,R0*0.68,0,0,Math.PI*2);
-  ctx.fill();
-
-  // Debris
-  for(var i = 0; i < BH_DEBRIS.length; i++){
-    var d = BH_DEBRIS[i];
-    d.angle += d.spd;
-    var dbx = cx + Math.cos(d.angle)*d.dist;
-    var dby = cy + Math.sin(d.angle)*d.dist*0.34;
-    var dw = (Math.sin(BH_T*3.5+d.phase)+1)/2;
-    ctx.beginPath(); ctx.arc(dbx,dby,d.r*(0.6+dw*0.55),0,Math.PI*2);
-    ctx.fillStyle   = d.bright ? 'rgba(255,228,100,'+(0.5+dw*0.5)+')' : 'rgba(247,147,26,'+(0.3+dw*0.4)+')';
-    ctx.shadowColor = 'rgba(255,195,65,0.75)';
-    ctx.shadowBlur  = d.bright ? 8+dw*9 : 2;
-    ctx.fill(); ctx.shadowBlur = 0;
-  }
-
-  // Event horizon
-  var eGr = ctx.createRadialGradient(cx,cy,0,cx,cy,R0);
-  eGr.addColorStop(0,'#000000'); eGr.addColorStop(0.7,'#010206'); eGr.addColorStop(1,'#020610');
-  ctx.fillStyle = eGr;
-  ctx.beginPath(); ctx.arc(cx,cy,R0,0,Math.PI*2); ctx.fill();
-
-  // Photon ring
-  var pulse = (Math.sin(BH_T*2.2)+1)/2;
-  ctx.beginPath(); ctx.arc(cx,cy,R0+0.8,0,Math.PI*2);
-  ctx.strokeStyle = 'rgba(255,215,95,'+(0.52+pulse*0.43)+')';
-  ctx.lineWidth   = 1.5+pulse*0.9;
-  ctx.shadowColor = 'rgba(255,195,65,0.9)'; ctx.shadowBlur = 9+pulse*14;
-  ctx.stroke(); ctx.shadowBlur = 0;
-
-  // Gravitational lens arcs
-  ctx.beginPath(); ctx.arc(cx,cy,R0*1.16,Math.PI*0.18,Math.PI*0.82);
-  ctx.strokeStyle = 'rgba(255,245,190,0.16)'; ctx.lineWidth=1; ctx.stroke();
-  ctx.beginPath(); ctx.arc(cx,cy,R0*1.24,Math.PI*1.18,Math.PI*1.78);
-  ctx.strokeStyle = 'rgba(255,245,190,0.10)'; ctx.lineWidth=1; ctx.stroke();
-
-  // Message
-  BH_MT += 0.016;
-  if(BH_MT > 7){ BH_MT=0; BH_MIDX=(BH_MIDX+1)%BH_MSGS.length; }
-  var ma = BH_MT<0.8?BH_MT/0.8:BH_MT>5.5?(7-BH_MT)/1.5:1;
-  ctx.globalAlpha = ma*0.42;
-  ctx.fillStyle   = '#f7931a';
-  ctx.font        = 'bold 11px monospace';
-  ctx.textAlign   = 'center';
-  ctx.fillText(BH_MSGS[BH_MIDX], cx, H*0.92);
-  ctx.globalAlpha = 1;
-
-  requestAnimationFrame(drawBlackHole);
-}
-
-function initDotHover(){
-  initBlackHole();
-}
-
-
-function renderDotStats(){
-  var remaining = 1000000 - HOLDINGS;
-  var rate = DAY_BTC > 0 ? DAY_BTC : (BTC_P > 0 ? Math.round(65.98e6/BTC_P) : 795);
-  if(!rate||rate<=0) rate = 795;
-  var daysLeft = Math.ceil(remaining / rate);
-  var years = Math.floor(daysLeft/365);
-  var remDays = daysLeft % 365;
-  var label = years > 0 ? years+'y '+remDays+'d' : daysLeft+' days';
-  set('bhDays', label);
-}
-
-
-
-
-
-
-// ============================================================
-// RENDER mNAV
-// ============================================================
-
-
-
-
-// ============================================================
-// GATE BANNER
-// ============================================================
-function renderGateBanner(){
-  var banner=el('gateBanner');
-  var txt=el('gateBannerTxt');
-  if(!banner||!txt)return;
-  if(STRC_P<=0){banner.style.display='none';return;}
-  banner.style.display='flex';
-  if(STRC_P >= 100.0){
-    banner.className='gate-banner open';
-    document.body.classList.add('gate-open');
-    txt.textContent='ATM GATE OPEN -- STRC $'+STRC_P.toFixed(2)+' (above par) -- Strategy is actively accumulating BTC';
-  } else if(STRC_P >= 99.5){
-    banner.className='gate-banner open';
-    document.body.classList.add('gate-open');
-    txt.textContent='ATM GATE REDUCED -- STRC $'+STRC_P.toFixed(2)+' (below $100 par, ex-dividend effect, reduced issuance)';
-  } else {
-    banner.className='gate-banner closed';
-    document.body.classList.remove('gate-open');
-    txt.textContent='ATM GATE CLOSED -- STRC $'+STRC_P.toFixed(2)+' (below $99.50 par) -- Accumulation paused';
-  }
-}
-
-function renderMobileNav(sess){
-  var ao=sess?sess.ao:isGateOpen();
-  var soFar=sess?sess.soFar:0;
-  var mg=el('mobGate');
-  if(mg){mg.textContent=ao?'OPEN':'CLOSED';mg.className='mob-val '+(ao?'gn':'rd');}
-  set('mobBtc',num(soFar));
-  var mf=el('mobFG');
-  if(mf){mf.textContent=FG_SCORE;mf.style.color=fgColor(FG_SCORE);}
-  var k=el('ks8k');
-  var m8=el('mob8k');
-  if(k&&m8)m8.textContent=k.textContent;
-}
-
-// ============================================================
-// SHARE SNAPSHOT
-// ============================================================
-function initShare(){
-  var btn=el('shareBtn');
-  if(!btn)return;
-  btn.addEventListener('click',function(){
-    var ao=isGateOpen();
-    var sess=getSession();
-    var lines=[
-      'Strategy BTC Accumulation Snapshot',
-      '',
-      'Gate: '+(ao?'OPEN':'CLOSED')+'  |  STRC: $'+(STRC_P>0?STRC_P.toFixed(2):'--'),
-      'BTC Today: ~'+num(sess.soFar)+' BTC so far',
-      'Full Day Est: ~'+num(sess.fullDay)+' BTC',
-      'BTC Price: $'+num(Math.round(BTC_P||0)),
-      'Total Holdings: '+num(HOLDINGS)+' BTC',
-      'Reserve Value: '+money((BTC_P||0)*HOLDINGS),
-      'MSTR FG Index: '+FG_SCORE+' ('+fgLabel(FG_SCORE)+')',
-      '',
-      'Via @AAStack | Orange Dots'
-    ];
-    var txt=lines.join(String.fromCharCode(10));
-    if(navigator.clipboard&&navigator.clipboard.writeText){
-      navigator.clipboard.writeText(txt).then(function(){showToast();});
-    } else {
-      var ta=document.createElement('textarea');
-      ta.value=txt;document.body.appendChild(ta);ta.select();
-      document.execCommand('copy');document.body.removeChild(ta);
-      showToast();
-    }
-  });
-}
-function showToast(){
-  var t=el('shareToast');if(!t)return;
-  t.classList.add('show');
-  setTimeout(function(){t.classList.remove('show');},2500);
-}
-
-// ============================================================
-// LIVE TAB TITLE
-// ============================================================
-function updateTabTitle(sess){
-  var ao=isGateOpen();
-  document.title=num(sess?sess.soFar:0)+' BTC today | Gate '+(ao?'OPEN':'CLOSED')+' | Orange Dots';
-}
-
-
-
-
-function drawMNAVChart(x){ /* removed */ }
-
-
-// ============================================================
-// AUTO-UPDATE HOLDINGS FROM SEC EDGAR + STRATEGY.COM
-// Runs on load and every 6 hours - updates when new 8-K drops
-// ============================================================
-function fetchHoldings(){
-  // Source 1: SEC EDGAR - Strategy Inc CIK 0001050446
-  // Gets latest 8-K filing metadata
-  fetch('https://data.sec.gov/submissions/CIK0001050446.json', {
-    headers: {'User-Agent': 'OrangeDots/1.0 orangedots@proton.me'},
-    cache: 'no-store'
-  })
-  .then(function(r){ return r.json(); })
-  .then(function(data){
-    var filings = data.filings && data.filings.recent;
-    if(!filings) return;
-    var forms = filings.form;
-    var dates = filings.filingDate;
-    var accNums = filings.accessionNumber;
-    // Find latest 8-K
-    for(var i=0; i<forms.length; i++){
-      if(forms[i] === '8-K'){
-        var accNum = accNums[i].replace(/-/g,'');
-        var cik = '0001050446';
-        // Fetch the actual 8-K document index
-        fetch('https://data.sec.gov/Archives/edgar/data/1050446/'+accNum+'/'+'0001193125'+accNum.slice(10)+'-index.json', {
-          headers: {'User-Agent': 'OrangeDots/1.0 orangedots@proton.me'}
-        })
-        .then(function(r){ return r.json(); })
-        .then(function(idx){
-          // Find the main document
-          var docs = idx.directory && idx.directory.item;
-          if(!docs) return;
-          var mainDoc = docs.find(function(d){ return d.type === '8-K'; });
-          if(!mainDoc) return;
-          // Fetch the actual 8-K text and parse holdings
-          var docUrl = 'https://data.sec.gov/Archives/edgar/data/1050446/'+accNum+'/'+mainDoc.name;
-          fetch(docUrl, {headers: {'User-Agent': 'OrangeDots/1.0 orangedots@proton.me'}})
-          .then(function(r){ return r.text(); })
-          .then(function(txt){
-            // Parse: "held X,XXX,XXX bitcoin" or "holdings to X,XXX,XXX"
-            var holdMatch = txt.match(/(\d{3},\d{3})\s*bitcoin/i);
-            // Parse: "average.*price.*\$XX,XXX" 
-            var avgMatch  = txt.match(/average\s+(?:purchase\s+)?price\s+(?:of\s+)?\$?([\d,]+)/i);
-            if(holdMatch){
-              var newHoldings = parseInt(holdMatch[1].replace(/,/g,''));
-              if(newHoldings > HOLDINGS && newHoldings < 2000000){
-                HOLDINGS = newHoldings;
-                if(avgMatch) AVG_COST = parseInt(avgMatch[1].replace(/,/g,''));
-                renderKeyStats();
-                renderAll();
-                console.log('Holdings auto-updated from 8-K:', newHoldings);
-              }
-            }
-          }).catch(function(){});
-        }).catch(function(){});
-        break;
-      }
-    }
-  }).catch(function(){});
-
-  // Also try strategy.com dashboard API
-  fetch('https://api.allorigins.win/raw?url='+encodeURIComponent('https://www.strategy.com/api/dashboard'), {cache:'no-store'})
-  .then(function(r){ return r.json(); })
-  .then(function(d){
-    if(d && d.btcHoldings && d.btcHoldings > HOLDINGS && d.btcHoldings < 2000000){
-      HOLDINGS = d.btcHoldings;
-      if(d.avgCost) AVG_COST = d.avgCost;
-      renderKeyStats();
-      renderAll();
-      console.log('Holdings auto-updated from strategy.com:', d.btcHoldings);
-    }
-  }).catch(function(){});
-
-  // Reschedule every 6 hours
-  setTimeout(fetchHoldings, 6 * 60 * 60 * 1000);
-}
-
-// ============================================================
-// MASTER RENDER + REFRESH
-// ============================================================
-function renderAll(){
-  checkReset();
-  var sess=getSession();
-  renderEst(sess);
-  renderAbs(sess.soFar,sess.ao);
-  renderWeekly(sess);
-  renderWeekBar();
-  renderPill(sess);
-  renderFG();
-  renderKeyStats();
-  renderDotStats();
-  renderGateBanner();
-  renderMobileNav(sess);
-  updateTabTitle(sess);
-}
-
-function refresh(){
-  cdSec=60;rfNum++;
-  fetchBTC(function(p,ch,src){
-    applyBTC(p,ch,src);renderAll();
-    var ts=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true});
-    set('updVal',ts);
-    set('ftr','BTC and STRC live - '+ts+' EST - refresh #'+rfNum);
-  });
-}
-function refreshFG(){fetchFGData(function(){renderFG();});}
-
-// ============================================================
-// INIT
-// ============================================================
-renderWeekBar();
-renderHKTable();
-applyBTC(BTC_P, null, 'seed');
-renderAll();
-// Fire STRC fetch immediately on load (separate from refresh cycle)
-fetchSTRC(function(p,live,vol){applySTRC(p,live,vol);renderAll();});
-setTimeout(function(){initDotHover();var sp=Math.round(HOLDINGS/MSTR_SHARES*1e8);drawMNAVChart(sp);},300);
-initShare();
-if(window.innerWidth >= 768){ requestAnimationFrame(drawPill); }
-requestAnimationFrame(drawFGGauge);
-requestAnimationFrame(drawBlackHole);
-refresh(); // fire immediately on load
-fetchHoldings(); // auto-update holdings from SEC EDGAR
-setTimeout(refreshFG,1500);
-setInterval(refresh,60000);
-setInterval(refreshFG,300000);
-window.addEventListener('resize',function(){BH_INIT=false;drawBlackHole();});
-window.addEventListener('orientationchange',function(){
-  setTimeout(function(){BH_INIT=false;drawBlackHole();},300);
-});
-
-
-// ============================================================
-// INIT
-// ============================================================
-renderWeekBar();
-renderHKTable();
-applyBTC(BTC_P, null, 'seed');
-renderAll();
-
-setTimeout(function(){initDotHover();var sp=Math.round(HOLDINGS/MSTR_SHARES*1e8);drawMNAVChart(sp);},300);
-initShare();
-if(window.innerWidth >= 768){ requestAnimationFrame(drawPill); }
-requestAnimationFrame(drawFGGauge);
-requestAnimationFrame(drawBlackHole);
-refresh(); // fire immediately on load
-fetchHoldings(); // auto-update holdings from SEC EDGAR
-window.addEventListener('resize',function(){BH_INIT=false;drawBlackHole();});
-window.addEventListener('orientationchange',function(){
-  setTimeout(function(){BH_INIT=false;drawBlackHole();},300);
-});
+window.addEventListener('load',init);
+window.addEventListener('resize',function(){renderGauge();});
 </script>
-
-<footer>
-  <div class="footer-top" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:5px;margin-bottom:10px">
-    <span>Volume-based STRC model: (daily STRC vol × 40% × 97.5%) / BTC price. Fallback: $136M/day 8-K weighted avg. Confirmed weekly via SEC 8-K every Monday.</span>
-    <span id="ftr">initializing...</span>
-  </div>
-  <div class="footer-bot" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;padding-top:10px;border-top:1px solid var(--line)">
-    <span style="font-size:11px;color:var(--txt2);line-height:1.6;max-width:820px">
-      Not financial advice. Orange Dots is for educational and entertainment purposes only. All estimates are model-based projections confirmed against SEC 8-K filings. Actual purchases confirmed via SEC 8-K filings only. MSTR and STRC prices via Finnhub and Yahoo Finance. Always do your own research. Created by <b style="color:var(--og)">AAStack</b> &mdash; follow on X for Bitcoin and Strategy content.
-    </span>
-  </div>
-</footer>
 </body>
 </html>
